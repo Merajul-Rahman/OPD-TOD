@@ -528,11 +528,13 @@ const COST_COLS = [
 //  BUILD HEADER  (called once, or on reset)
 // ══════════════════════════════════════════════════════
 function buildHeader() {
-  const hMonth  = document.getElementById("headMonth");
-  const hMain   = document.getElementById("headMain");
-  const hMoSub  = document.getElementById("headMoSub");
-  const hWkSub  = document.getElementById("headWkSub");
-  [hMonth, hMain, hMoSub, hWkSub].forEach(el => el.innerHTML = "");
+  const hMonth    = document.getElementById("headMonth");
+  const hMain     = document.getElementById("headMain");
+  const hMoSub    = document.getElementById("headMoSub");
+  const hWkSub    = document.getElementById("headWkSub");
+  const hWkSubOrd = document.getElementById("headWkSubOrd");
+  const hWkSubNoOrd = document.getElementById("headWkSubNoOrd");
+  [hMonth, hMain, hMoSub, hWkSub, hWkSubOrd, hWkSubNoOrd].forEach(el => el.innerHTML = "");
 
   const FC = FIXED_COLS.length;
   const CC = COST_COLS.length;
@@ -600,23 +602,53 @@ function buildHeader() {
   moFill2.colSpan = CC;
   hMoSub.appendChild(moFill2);
 
-  // ── Row 4: Week subtotals ──
+  // ── Row 4: Week subtotals — ALL ──
   const wkLbl = document.createElement("th");
   wkLbl.className   = "label-cell";
   wkLbl.colSpan     = FC;
-  wkLbl.textContent = "WEEKLY SUBTOTALS ▶";
+  wkLbl.textContent = "WEEKLY · ALL ▶";
   hWkSub.appendChild(wkLbl);
-
   WEEKS.forEach(w => {
     const th = document.createElement("th");
     th.dataset.wkSub = w.no;
     th.textContent   = "—";
     hWkSub.appendChild(th);
   });
-
   const wkFill2 = document.createElement("th");
   wkFill2.colSpan = CC;
   hWkSub.appendChild(wkFill2);
+
+  // ── Row 5: Week subtotals — WITH ORDER (green) ──
+  const ordLbl = document.createElement("th");
+  ordLbl.className   = "label-cell";
+  ordLbl.colSpan     = FC;
+  ordLbl.textContent = "WEEKLY · WITH ORDER ▶";
+  hWkSubOrd.appendChild(ordLbl);
+  WEEKS.forEach(w => {
+    const th = document.createElement("th");
+    th.dataset.wkSubOrd = w.no;
+    th.textContent      = "—";
+    hWkSubOrd.appendChild(th);
+  });
+  const ordFill = document.createElement("th");
+  ordFill.colSpan = CC;
+  hWkSubOrd.appendChild(ordFill);
+
+  // ── Row 6: Week subtotals — NO ORDER (amber) ──
+  const nodLbl = document.createElement("th");
+  nodLbl.className   = "label-cell";
+  nodLbl.colSpan     = FC;
+  nodLbl.textContent = "WEEKLY · NO ORDER ▶";
+  hWkSubNoOrd.appendChild(nodLbl);
+  WEEKS.forEach(w => {
+    const th = document.createElement("th");
+    th.dataset.wkSubNod = w.no;
+    th.textContent      = "—";
+    hWkSubNoOrd.appendChild(th);
+  });
+  const nodFill = document.createElement("th");
+  nodFill.colSpan = CC;
+  hWkSubNoOrd.appendChild(nodFill);
 }
 
 // ══════════════════════════════════════════════════════
@@ -641,8 +673,10 @@ function renderBody(dataset) {
   tbody.innerHTML = "";
 
   // Accumulators
-  const wkTotals = {};
-  WEEKS.forEach(w => { wkTotals[w.no] = 0; });
+  const wkTotals    = {};   // all rows
+  const wkOrdTotals = {};   // rows with order
+  const wkNodTotals = {};   // rows without order
+  WEEKS.forEach(w => { wkTotals[w.no] = 0; wkOrdTotals[w.no] = 0; wkNodTotals[w.no] = 0; });
   const moTotals = {};
   MONTH_GROUPS.forEach(g => { moTotals[g.month] = 0; });
 
@@ -693,6 +727,8 @@ function renderBody(dataset) {
         td.textContent = qty.toLocaleString();
         td.classList.add("has-qty");
         wkTotals[w.no] += qty;
+        if (hasOrder) wkOrdTotals[w.no] += qty;
+        else          wkNodTotals[w.no] += qty;
         moTotals[w.month] = (moTotals[w.month]||0) + qty;
       } else {
         td.textContent = "—";
@@ -720,8 +756,12 @@ function renderBody(dataset) {
 
   // ── Update subtotals ──
   WEEKS.forEach(w => {
-    const cell = document.querySelector(`[data-wk-sub="${w.no}"]`);
-    if (cell) cell.textContent = wkTotals[w.no] ? wkTotals[w.no].toLocaleString() : "—";
+    const all = document.querySelector(`[data-wk-sub="${w.no}"]`);
+    const ord = document.querySelector(`[data-wk-sub-ord="${w.no}"]`);
+    const nod = document.querySelector(`[data-wk-sub-nod="${w.no}"]`);
+    if (all) all.textContent = wkTotals[w.no]    ? wkTotals[w.no].toLocaleString()    : "—";
+    if (ord) ord.textContent = wkOrdTotals[w.no] ? wkOrdTotals[w.no].toLocaleString() : "—";
+    if (nod) nod.textContent = wkNodTotals[w.no] ? wkNodTotals[w.no].toLocaleString() : "—";
   });
   MONTH_GROUPS.forEach(g => {
     const cell = document.querySelector(`[data-mo-sub="${g.month}"]`);
