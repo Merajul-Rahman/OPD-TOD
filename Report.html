@@ -205,7 +205,7 @@ td.pct-bad {color:#C62828;font-weight:700}
 
 <!-- NAV -->
 <nav class="topnav">
-  <span class="topnav-logo">ERP <span>Merch</span></span>
+  <span class="topnav-logo"><a style="text-decoration: none; color: inherit;" href="index.html">ERP <span>Merch</span></a></span>
   <div class="nav-sep"></div>
   <a class="nav-link" href="Plan_Upload.html">Plan Upload</a>
   <a class="nav-link" href="Order_Tag.html">Order Tag</a>
@@ -243,15 +243,6 @@ td.pct-bad {color:#C62828;font-weight:700}
   </div>
   <div class="filter-sep"></div>
 
-  <div class="filter-group">
-    <label>Channel</label>
-    <select id="fChannel" style="width:90px">
-      <option value="">All</option>
-      <option value="OL">Online</option>
-      <option value="Shop">Shop</option>
-    </select>
-  </div>
-  <div class="filter-sep"></div>
 
   <div class="filter-group">
     <label>Merchant</label>
@@ -280,7 +271,8 @@ td.pct-bad {color:#C62828;font-weight:700}
 
   <button class="btn-search" id="btnSearch" onclick="doSearch()">🔍 Search</button>
   <button class="btn-outline" onclick="resetFilter()">✕ Reset</button>
-
+</div>
+<div>
   <input class="search-global" type="text" id="gSearch"
     placeholder="Quick filter…" oninput="globalSearch(this.value)"
     title="Filter visible rows">
@@ -409,7 +401,7 @@ const DATA = [
     rcvDay:"Thursday", opd:"2024-04-10", osdt:"2024-04-10",
     tod:18, firstTod:"2024-05-06", month:"May", workingDays:24,
     projection:45000, received:0, ocv:0, smv:6.3,
-    weekly:{},
+    weekly:{11:250, 13:6525, 17:5415},
     fabricDozCons:2.9, fabricType:"Rayon", reqFabric:3800,
     settledFob:5.80, revisedFob:0, increasePct:0, value:0,
     priceIncreaseTotal:0, preEarning:0,
@@ -423,7 +415,7 @@ const DATA = [
     rcvDay:"Monday", opd:"2024-05-06", osdt:"2024-05-06",
     tod:22, firstTod:"2024-06-03", month:"June", workingDays:28,
     projection:60000, received:0, ocv:0, smv:7.2,
-    weekly:{},
+    weekly:{12:0,13:22000,14:31000,15:20000,16:15000},
     fabricDozCons:3.0, fabricType:"Poly Viscose", reqFabric:5100,
     settledFob:6.50, revisedFob:0, increasePct:0, value:0,
     priceIncreaseTotal:0, preEarning:0,
@@ -810,7 +802,6 @@ function doSearch() {
 function filterData() {
   const merchant     = document.getElementById("fMerchant").value;
   const season       = document.getElementById("fSeason").value;
-  const channel      = document.getElementById("fChannel").value;
   const style        = document.getElementById("fStyle").value.toLowerCase().trim();
   const from         = document.getElementById("fFrom").value;
   const to           = document.getElementById("fTo").value;
@@ -819,7 +810,6 @@ function filterData() {
   return DATA.filter(r => {
     if (merchant && r.merchant !== merchant)                           return false;
     if (season   && r.season   !== season)                             return false;
-    if (channel  && r.channel  !== channel)                            return false;
     if (style    && !r.style.toLowerCase().includes(style))            return false;
     if (from     && r.opd && r.opd < from)                             return false;
     if (to       && r.opd && r.opd > to)                               return false;
