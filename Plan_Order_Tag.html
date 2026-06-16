@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Order Plan Tagging</title>
+
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Segoe UI, Arial, sans-serif;
+}
+
+body{
+    background:#f4f6f9;
+    padding:25px;
+}
+
+.container{
+    max-width:1600px;
+    margin:auto;
+}
+
+.page-header{
+    background:white;
+    padding:20px;
+    border-radius:10px;
+    margin-bottom:20px;
+    box-shadow:0 2px 10px rgba(0,0,0,.08);
+}
+
+.page-header h1{
+    font-size:24px;
+    color:#2c3e50;
+}
+
+.card{
+    background:white;
+    border-radius:10px;
+    padding:20px;
+    box-shadow:0 2px 10px rgba(0,0,0,.08);
+    margin-bottom:20px;
+}
+
+.card-title{
+    font-size:18px;
+    font-weight:600;
+    margin-bottom:15px;
+    color:#2c3e50;
+}
+
+.form-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:15px;
+}
+
+.form-group{
+    display:flex;
+    flex-direction:column;
+}
+
+label{
+    margin-bottom:6px;
+    font-size:13px;
+    font-weight:600;
+    color:#444;
+}
+
+input,
+select{
+    height:40px;
+    border:1px solid #dcdcdc;
+    border-radius:6px;
+    padding:0 12px;
+}
+
+input:focus,
+select:focus{
+    outline:none;
+    border-color:#1976d2;
+}
+
+button{
+    border:none;
+    padding:10px 18px;
+    border-radius:6px;
+    cursor:pointer;
+    font-weight:600;
+}
+
+.primary{
+    background:#1976d2;
+    color:white;
+}
+
+.success{
+    background:#2e7d32;
+    color:white;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+th{
+    background:#1976d2;
+    color:white;
+    padding:12px;
+    text-align:left;
+}
+
+td{
+    padding:12px;
+    border-bottom:1px solid #eee;
+}
+
+tr:hover{
+    background:#f7fbff;
+}
+
+.tag-select{
+    width:100%;
+    height:35px;
+}
+
+
+
+.modal{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.5);
+    justify-content:center;
+    align-items:center;
+}
+
+.modal-content{
+    width:700px;
+    max-width:95%;
+    background:white;
+    border-radius:10px;
+    padding:20px;
+}
+
+.modal-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:15px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- HEADER -->
+    <div class="page-header">
+        <h1>Order - Plan Tagging</h1>
+    </div>
+
+    <!-- SKU SECTION -->
+    <div class="card">
+        <div class="form-grid">
+
+            <div class="form-group">
+                <label>Select SKU</label>
+                <select id="skuSelect">
+                    <option value="">-- Select SKU --</option>
+                    <option value="SKU001">SKU001</option>
+                    <option value="SKU002">SKU002</option>
+                </select>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- PLAN TABLE -->
+    <div class="card">
+
+        <div class="card-title">Plan List</div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Plan No</th>
+                    <th>Style</th>
+                    <th>Article</th>
+                    <th>Channel</th>
+                    <th>OPD</th>
+                    <th>TOD Count</th>
+                    <th>1st TOD</th>
+                    <th>Quantity Details</th>
+                    <th>Tag Order</th>
+                </tr>
+            </thead>
+
+            <tbody id="planTableBody">
+            </tbody>
+
+        </table>
+
+    </div>
+
+<div class="modal" id="qtyModal">
+
+    <div class="modal-content">
+
+        <div class="modal-header">
+            <h3>TOD Quantity Details</h3>
+            <button class="close-btn" onclick="closeModal()">Close</button>
+        </div>
+
+        <table class="small-table">
+
+            <thead>
+            <tr>
+                <th>TOD Week</th>
+                <th>Quantity</th>
+            </tr>
+            </thead>
+
+            <tbody id="qtyTableBody">
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+
+    <div class="card" style="display: flex; align-items: center; justify-content: center; gap: 20px;">
+    <button class="success">Save</button>
+    <button class="success" style="background-color: yellowgreen;">Refress</button>
+    <button class="close-btn" style="background-color: red; color: white;" >Close</button>
+
+    
+</div>
+
+</div>
+
+<script>
+const qtyData = {
+    PLAN001:[
+        {week:"W30",qty:1200},
+        {week:"W31",qty:1500},
+        {week:"W32",qty:1800},
+        {week:"W33",qty:1000}
+    ],
+    PLAN002:[
+        {week:"W35",qty:2000},
+        {week:"W36",qty:1500},
+        {week:"W37",qty:1700}
+    ]
+};
+
+
+    function showQty(planNo){
+
+    let rows = "";
+
+    qtyData[planNo].forEach(item=>{
+
+        rows += `
+        <tr>
+            <td style="width: 50%;">${item.week}</td>
+            <td style="width: 50%;">${item.qty}</td>
+        </tr>
+        `;
+
+    });
+
+    document.getElementById("qtyTableBody").innerHTML = rows;
+
+    document.getElementById("qtyModal").style.display="flex";
+}
+
+function closeModal(){
+    document.getElementById("qtyModal").style.display="none";
+}
+
+</script>
+
+
+<script>
+
+// Sample Data
+const skuPlans = {
+    "SKU001":[
+        {
+            planNo:"PLAN001",
+            style:"STYLE-1001",
+            article:"17-402",
+            channel:"Online",
+            opd:"2026-06-16",
+            tod:4,
+            firstTod:"W30",
+            qty:"1500"
+        },
+        {
+            planNo:"PLAN002",
+            style:"STYLE-2002",
+            article:"18-550",
+            channel:"Store",
+            opd:"2026-08-05",
+            tod:3,
+            firstTod:"W35",
+            qty:"900"
+        }
+    ],
+    "SKU002":[
+        {
+            planNo:"PLAN003",
+            style:"STYLE-3003",
+            article:"19-777",
+            channel:"Export",
+            opd:"2026-09-10",
+            tod:5,
+            firstTod:"W40",
+            qty:"3200"
+        }
+    ]
+};
+
+const orders = ["ORD-001","ORD-002","ORD-003"];
+
+document.getElementById("skuSelect").addEventListener("change", function(){
+
+    const sku = this.value;
+    const tbody = document.getElementById("planTableBody");
+
+    tbody.innerHTML = "";
+
+    if(!skuPlans[sku]) return;
+
+    skuPlans[sku].forEach((p, i)=>{
+
+        let options = orders.map(o=>`<option value="${o}">${o}</option>`).join("");
+
+        tbody.innerHTML += `
+            <tr>
+                <td>${p.planNo}</td>
+                <td>${p.style}</td>
+                <td>${p.article}</td>
+                <td>
+                    <select disabled>
+                        <option ${p.channel==="Online"?"selected":""}>Online</option>
+                        <option ${p.channel==="Store"?"selected":""}>Store</option>
+                    </select>
+                </td>
+                <td>${p.opd}</td>
+                <td>${p.tod}</td>
+                <td>${p.firstTod}</td>
+                <td>
+                    <button class="primary"
+                        onclick="showQty('${p.planNo}')">
+                        View
+                    </button>
+                </td>
+                <td>
+                    <select class="tag-select">
+                        <option value="">Select Order</option>
+                        ${options}
+                    </select>
+                </td>
+            </tr>
+        `;
+    });
+
+});
+
+</script>
+
+</body>
+</html>

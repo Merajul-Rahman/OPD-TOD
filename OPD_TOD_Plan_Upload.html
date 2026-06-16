@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SKU Based Plan Upload</title>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Segoe UI, Arial, sans-serif;
+}
+
+body{
+    background:#f4f6f9;
+    padding:25px;
+}
+
+.container{
+    max-width:1600px;
+    margin:auto;
+}
+
+.page-header{
+    background:white;
+    padding:20px;
+    border-radius:10px;
+    margin-bottom: 0px;
+    box-shadow:0 2px 10px rgba(0,0,0,.08);
+}
+
+.page-header h1{
+    font-size:24px;
+    color:#2c3e50;
+}
+
+.card{
+    background:white;
+    border-radius:10px;
+    padding:20px;
+    box-shadow:0 2px 10px rgba(0,0,0,.08);
+    margin-bottom:20px;
+}
+
+.card-title{
+    font-size:18px;
+    font-weight:600;
+    margin-bottom:15px;
+    color:#2c3e50;
+}
+
+.form-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:15px;
+}
+
+.form-group{
+    display:flex;
+    flex-direction:column;
+}
+
+label{
+    margin-bottom:6px;
+    font-size:13px;
+    font-weight:600;
+    color:#444;
+}
+
+input,
+select{
+    height:40px;
+    border:1px solid #dcdcdc;
+    border-radius:6px;
+    padding:0 12px;
+}
+
+input:focus,
+select:focus{
+    outline:none;
+    border-color:#1976d2;
+}
+
+.action-bar{
+    display:flex;
+    gap:10px;
+    margin-top:20px;
+    flex-wrap:wrap;
+}
+
+button{
+    border:none;
+    padding:10px 18px;
+    border-radius:6px;
+    cursor:pointer;
+    font-weight:600;
+}
+
+.primary{
+    background:#1976d2;
+    color:white;
+}
+
+.secondary{
+    background:#eceff1;
+}
+
+.success{
+    background:#2e7d32;
+    color:white;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+th{
+    background:#1976d2;
+    color:white;
+    padding:12px;
+    text-align:left;
+}
+
+td{
+    padding:12px;
+    border-bottom:1px solid #eee;
+}
+
+tr:hover{
+    background:#f7fbff;
+}
+
+.badge{
+    background:#e3f2fd;
+    color:#1565c0;
+    padding:4px 10px;
+    border-radius:20px;
+    font-size:12px;
+}
+
+.modal{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.5);
+    justify-content:center;
+    align-items:center;
+}
+
+.modal-content{
+    width:700px;
+    max-width:95%;
+    background:white;
+    border-radius:10px;
+    padding:20px;
+}
+
+.modal-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:15px;
+}
+
+.close-btn{
+    background:red;
+    color:white;
+}
+
+.small-table th{
+    background:#455a64;
+}
+
+
+.info{
+    background:#f1f8e9;
+    border-left:4px solid #689f38;
+    padding:12px;
+    margin-top:15px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="page-header">
+        <h1>Plan Upload</h1>
+    </div>
+    <div style="display: flex; gap: 10px; align-items: center; justify-content: center;">
+        <input type="radio" name="status" value="new" checked><h5>New</h5> <input type="radio" name="status" value="revise"><h5>Revise</h5> 
+    </div>
+
+    <div class="card">
+
+        <div class="card-title">Basic Information</div>
+
+        <div class="form-grid">
+            <div class="form-group" id="skuContainer">
+                <label>SQ No.</label>
+
+                <!-- Default: text input -->
+                <input type="text" id="skuInput" placeholder="Enter SKU">
+
+                <!-- Dropdown (hidden by default) -->
+                <select id="skuSelect" style="display:none;">
+                    <option value="">Select SQ No.</option>
+                    <option value="SKU001">SKU001</option>
+                    <option value="SKU002">SKU002</option>
+                    <option value="SKU003">SKU003</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Season</label>
+                <select id="ddlDepartment0" class="form-control select2 Department select2-hidden-accessible" tabindex="-1" aria-hidden="true"> 
+                    <option value="-1">--Select--</option><option value="20">Winter(Win)</option><option value="21">Summer(SUM)</option><option value="22">General(GEN)</option><option value="43">Season-1(S-1)</option><option value="44">Season-3(S-3)</option><option value="74">0-2021(202101)</option><option value="76">1-2021</option><option value="77">2-2021</option><option value="78">3-2021</option><option value="79">4-2021</option><option value="80">5-2021</option><option value="82">6-2021</option><option value="83">7-2021</option><option value="84">8-2021</option><option value="85">9-2021</option><option value="86">0-2021</option><option value="87">0-2022(202200)</option><option value="88">1-2022(202201)</option><option value="90">2-2022(202202)</option><option value="91">3-2022(202203)</option><option value="92">4-2022(202204)</option><option value="93">5-2022(202205)</option><option value="94">6-2022(202206)</option><option value="96">7-2023(202307)</option><option value="99">8-2023(202308)</option><option value="105">9-2024(202409)</option><option value="107">0-2025(202500)</option><option value="108">1-2025(202501)</option><option value="109">4-2026(202604)</option><option value="110">3-2026(202603)</option><option value="111">4-2027(202704)</option><option value="112">5-2027(202705)</option><option value="113">6-2028(202806)</option><option value="114">7-2028(202807)</option><option value="115">8-2029(202908)</option><option value="116">9-2029(202909)</option><option value="232">0-2024(202400)</option><option value="498">2-2025(202502)</option><option value="499">3-2025(202503)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Department</label>
+                <select name="department" id="department">
+                    <option value="-1">--Select--</option>
+                    <option value="51">8748 (Division 16)</option>
+                    <option value="53">Baby Girls (6525)</option>
+                    <option value="54">Baby Girls (7050)</option>
+                    <option value="55">Baby Girls (7814)</option>
+                    <option value="56">Baby Boys (6545)</option>
+                    <option value="57">Newborn (6564)</option>
+                    <option value="58">Young Boys (8748)</option>
+                    <option value="59">Small H&amp;M Boys (7648)</option>
+                    <option value="60">H&amp;M boys (7848)</option>
+                    <option value="61">Lic. Boys (7659)</option>
+                    <option value="62">Boys NW (4215)</option>
+                    <option value="63">Young Girls (8716)</option>
+                    <option value="64">Small Girls (7616)</option>
+                    <option value="65">Lic. Girls (8815)</option>
+                    <option value="66">Lic. Girls (7819)</option>
+                    <option value="67">Girls NW (7922)</option>
+                    <option value="68">Girls NW (7932)</option>
+                    <option value="69">H&amp;M Accessories (2950)</option>
+                    <option value="70">H&amp;M Accessories (4212)</option>
+                    <option value="71">H&amp;M Accessories (4312)</option>
+                    <option value="96">Boys (8854)</option>
+                    <option value="97">Young Girl (7854)</option>
+                    <option value="98">H&amp;M BOYS (7878)</option>
+                    <option value="99">Newborn PJ (6563)</option>
+                    <option value="100">Nightwear (4225)</option>
+                    <option value="102">Small Girls (7820)</option>
+                    <option value="143">Baby (6289)</option>
+                    <option value="152">Boys (7879)</option>
+                    <option value="154">Young Girl (7821)</option>
+                    <option value="330">Ladies Divided (1347)</option>
+                    <option value="331">Divided Fancy (1640)</option>
+                    <option value="336">Baby Girls (6287)</option>
+                    <option value="454">Baby Girls (7652)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>PD Number</label>
+                <input type="text">
+            </div>
+
+            <div class="form-group">
+                <label>Product Type</label>
+                <select name="productType" id="productType">
+                    <option value="" disabled>Select Product Type</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Total SMV</label>
+                <input type="number">
+            </div>
+
+            <div class="form-group">
+                <label>Consumption/Dzn</label>
+                <input type="number">
+            </div>
+
+            <div class="form-group">
+                <label>Price</label>
+                <input type="number">
+            </div>
+
+            <div class="form-group">
+                <label>Pre-Cost Earning</label>
+                <input type="number">
+            </div>
+
+            <div class="form-group">
+                <label for="">Upload Plan Excel File</label>
+                    <input type="file" accept=".xlsx,.xls" id="excelFile" style="width: 95%;">
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <div class="card">
+
+        <div class="card-title">Plan Details</div>
+
+        <table>
+
+            <thead>
+            <tr>
+                <th>Plan No</th>
+                <th>Style</th>
+                <th>Article</th>
+                <th>Channel</th>
+                <th>OPD Date</th>
+                <th>OPD Week</th>
+                <th>TOD Count</th>
+                <th>1st TOD</th>
+                <tn>No. of Pieces</tn>
+                <th>Quantity Details</th>
+            </tr>
+            </thead>
+
+            <tbody id="planTableBody">
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+<div class="modal" id="qtyModal">
+
+    <div class="modal-content">
+
+        <div class="modal-header">
+            <h3>TOD Quantity Details</h3>
+            <button class="close-btn" onclick="closeModal()">Close</button>
+        </div>
+
+        <table class="small-table">
+
+            <thead>
+            <tr>
+                <th>TOD Date</th>
+                <th>TOD Week</th>
+                <th>Quantity</th>
+            </tr>
+            </thead>
+
+            <tbody id="qtyTableBody">
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+ 
+<div class="card" style="display: flex; align-items: center; justify-content: center; gap: 20px;">
+    <button class="success">Save</button>
+    <button class="success" style="background-color: yellowgreen;">Refress</button>
+    <button class="close-btn" >Close</button>
+    <button class="close-btn" onclick="generatePlans()" >Genrated Demo Plan Rows</button>
+
+    
+</div>
+
+<script>
+
+const qtyData = {
+    PLAN001:[
+        {week:"W30",qty:1200},
+        {week:"W31",qty:1500},
+        {week:"W32",qty:1800},
+        {week:"W33",qty:1000}
+    ],
+    PLAN002:[
+        {week:"W35",qty:2000},
+        {week:"W36",qty:1500},
+        {week:"W37",qty:1700}
+    ]
+};
+
+const radios = document.querySelectorAll('input[name="status"]');
+const textInput = document.getElementById("skuInput");
+const selectInput = document.getElementById("skuSelect");
+
+radios.forEach(radio => {
+    radio.addEventListener("change", function () {
+        if (this.value === "revise") {
+            // show dropdown
+            textInput.style.display = "none";
+            selectInput.style.display = "block";
+        } else {
+            // show text input
+            textInput.style.display = "block";
+            selectInput.style.display = "none";
+        }
+    });
+});
+
+function generatePlans(){
+
+    const tbody = document.getElementById("planTableBody");
+
+    tbody.innerHTML = `
+
+    <tr>
+        <td>PLAN001</td>
+        <td><input type="text" value="STYLE-1001"></td>
+        <td><input type="text" value="17-402"></td>
+        <td><select class="badge"> <option selected>Online</option> <option >Store</option></select></td>
+        <td><input type="date" value="2026-06-16"></td>
+        <td>4</td>
+        <td>W30</td>
+        <td>
+            <button class="primary"
+                onclick="showQty('PLAN001')">
+                View
+            </button>
+        </td>
+    </tr>
+
+    <tr>
+        <td>PLAN002</td>
+        <td><input type="text" value="STYLE-1001"></td>
+        <td><input type="text" value="17-402"></td>
+        <td><select class="badge"> <option >Online</option> <option selected>Store</option></select></td>
+        <td><input type="date" value="2026-08-05"</td>
+        <td>3</td>
+        <td>W35</td>
+        <td>
+            <button class="primary"
+                onclick="showQty('PLAN002')">
+                View
+            </button>
+        </td>
+    </tr>
+
+    `;
+}
+document.getElementById("excelFile").addEventListener("change", generatePlans);
+
+function showQty(planNo){
+
+    let rows = "";
+
+    qtyData[planNo].forEach(item=>{
+
+        rows += `
+        <tr>
+            <td style="width: 50%;"><select style="width: 80%;"> <option selected>${item.week}</option> </select></td>
+            <td style="width: 50%;"><input style="width: 80%;" value="${item.qty}" type="number"></td>
+        </tr>
+        `;
+
+    });
+
+    document.getElementById("qtyTableBody").innerHTML = rows;
+
+    document.getElementById("qtyModal").style.display="flex";
+}
+
+function closeModal(){
+    document.getElementById("qtyModal").style.display="none";
+}
+
+</script>
+
+</body>
+</html>
