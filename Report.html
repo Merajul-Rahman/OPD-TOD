@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OPD · TOD Report · ERP Merchandising</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  --primary:#1565C0; --primary-light:#E3F2FD; --primary-dark:#0D47A1;
+  --accent:#00897B;  --accent-light:#E0F2F1;
+  --danger:#C62828;  --danger-light:#FFEBEE;
+  --warning:#F57F17; --warning-light:#FFF8E1;
+  --surface:#FFFFFF; --bg:#F0F4FA; --border:#DDE3EE;
+  --text-primary:#1A2340; --text-secondary:#5A6A85; --text-muted:#8C9BB5;
+  --shadow-sm:0 1px 4px rgba(21,101,192,.07);
+  --shadow:0 2px 12px rgba(21,101,192,.11);
+  --radius:8px; --radius-lg:12px;
+  --nav-h:52px; --filter-h:56px;
+  --row-has-order:#F1FAF5;
+  --row-no-order:#FFFFFF;
+  --head-bg:#1565C0;
+  --month-bg:#0D47A1;
+  --wk-sub-bg:#1E3A5F;
+  --mo-sub-bg:#14304F;
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text-primary);
+     height:100vh;display:flex;flex-direction:column;overflow:hidden}
+
+/* ── NAV ── */
+.topnav{height:var(--nav-h);flex-shrink:0;background:var(--primary);
+  display:flex;align-items:center;padding:0 20px;gap:0;
+  box-shadow:0 2px 8px rgba(0,0,0,.22);z-index:200;position:relative}
+.topnav-logo{font-size:15px;font-weight:700;color:#fff;letter-spacing:.5px;padding-right:16px}
+.topnav-logo span{color:#90CAF9}
+.nav-sep{width:1px;height:22px;background:rgba(255,255,255,.2);margin:0 4px}
+.nav-link{display:flex;align-items:center;height:var(--nav-h);padding:0 16px;
+  font-size:13px;font-weight:600;color:rgba(255,255,255,.76);text-decoration:none;
+  border-bottom:3px solid transparent;transition:color .15s,border-color .15s;white-space:nowrap}
+.nav-link:hover{color:#fff;border-bottom-color:rgba(255,255,255,.4)}
+.nav-link.active{color:#fff;border-bottom-color:#90CAF9}
+
+/* ── FILTER BAR ── */
+.filter-bar{height:var(--filter-h);flex-shrink:0;background:var(--surface);
+  border-bottom:1px solid var(--border);display:flex;align-items:center;
+  gap:8px;padding:0 14px;box-shadow:var(--shadow-sm);overflow-x:auto}
+.filter-bar::-webkit-scrollbar{height:0}
+
+.filter-bar select,.filter-bar input[type="text"],.filter-bar input[type="date"]{
+  height:32px;border:1.5px solid var(--border);border-radius:6px;
+  padding:0 9px;font-size:12.5px;font-family:'Inter',sans-serif;
+  color:var(--text-primary);background:var(--surface);transition:border-color .14s;flex-shrink:0}
+.filter-bar select:focus,.filter-bar input:focus{outline:none;border-color:var(--primary)}
+.filter-bar label{font-size:10.5px;font-weight:700;color:var(--text-muted);
+  text-transform:uppercase;letter-spacing:.3px;white-space:nowrap;flex-shrink:0}
+.filter-group{display:flex;align-items:center;gap:5px;flex-shrink:0}
+.filter-sep{width:1px;height:26px;background:var(--border);flex-shrink:0;margin:0 2px}
+
+.btn-search{height:32px;padding:0 18px;border-radius:6px;border:none;
+  background:var(--primary);color:#fff;font-size:13px;font-weight:700;
+  cursor:pointer;font-family:'Inter',sans-serif;transition:background .14s,box-shadow .14s;
+  display:flex;align-items:center;gap:6px;white-space:nowrap;flex-shrink:0}
+.btn-search:hover{background:var(--primary-dark);box-shadow:0 3px 10px rgba(21,101,192,.35)}
+.btn-search.loading{opacity:.7;pointer-events:none}
+
+.btn-outline{height:32px;padding:0 13px;border-radius:6px;
+  border:1.5px solid var(--border);background:var(--surface);
+  color:var(--text-secondary);font-size:12.5px;font-weight:600;
+  cursor:pointer;font-family:'Inter',sans-serif;transition:all .14s;
+  display:flex;align-items:center;gap:5px;white-space:nowrap;flex-shrink:0}
+.btn-outline:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-light)}
+
+.search-global{margin-left:auto;flex-shrink:0;height:32px;border:1.5px solid var(--border);
+  border-radius:6px;padding:0 10px 0 30px;font-size:12.5px;font-family:'Inter',sans-serif;
+  color:var(--text-primary);min-width:170px;
+  background:var(--bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238C9BB5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E") no-repeat 9px center;
+  transition:border-color .14s}
+.search-global:focus{outline:none;border-color:var(--primary);background-color:var(--surface)}
+.result-badge{font-size:11.5px;font-weight:600;color:var(--text-muted);white-space:nowrap;padding:0 4px;flex-shrink:0}
+
+/* ── TABLE AREA ── */
+.table-area{flex:1;overflow:auto}
+.table-area::-webkit-scrollbar{width:8px;height:8px}
+.table-area::-webkit-scrollbar-track{background:#F0F4FA}
+.table-area::-webkit-scrollbar-thumb{background:#C0CAE0;border-radius:4px}
+.table-area::-webkit-scrollbar-thumb:hover{background:#8C9BB5}
+
+/* ── EMPTY / LOADING STATES ── */
+.state-screen{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  height:100%;gap:14px;color:var(--text-muted);
+}
+.state-screen .icon{font-size:48px;opacity:.35}
+.state-screen h3{font-size:16px;font-weight:600;color:var(--text-secondary)}
+.state-screen p{font-size:13px;max-width:320px;text-align:center;line-height:1.6}
+
+/* spinner */
+.spinner{width:36px;height:36px;border:3px solid var(--primary-light);
+  border-top-color:var(--primary);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── TABLE ── */
+table{border-collapse:collapse;width:max-content;min-width:100%;font-size:12.5px}
+thead{position:sticky;top:0;z-index:10}
+
+/* Row 1 — Month groups */
+thead tr.head-month th{
+  background:var(--month-bg);color:#fff;
+  font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;
+  padding:7px 10px;border:1px solid rgba(255,255,255,.12);
+  text-align:center;white-space:nowrap}
+thead tr.head-month th.month-filler{background:var(--primary);text-align:left;
+  font-size:10.5px;font-weight:600;letter-spacing:.4px;color:rgba(255,255,255,.55)}
+
+/* Row 2 — Column names */
+thead tr.head-main th{
+  background:var(--head-bg);color:#fff;
+  font-size:11px;font-weight:600;letter-spacing:.3px;text-transform:uppercase;
+  padding:8px 10px;border:1px solid rgba(255,255,255,.14);
+  white-space:nowrap;text-align:left}
+thead tr.head-main th.wk-th{text-align:right}
+
+/* Row 3 — Month subtotals */
+thead tr.head-mo-sub th{
+  background:var(--mo-sub-bg);color:#A8C7F0;
+  font-size:11px;font-weight:700;font-family:'JetBrains Mono',monospace;
+  padding:5px 10px;border:1px solid rgba(255,255,255,.07);
+  text-align:right;white-space:nowrap}
+thead tr.head-mo-sub th.label-cell{
+  text-align:left;font-size:10px;letter-spacing:.5px;
+  color:#7B9FC2;font-family:'Inter',sans-serif;font-weight:700}
+
+/* Row 4 — Week subtotals ALL */
+thead tr.head-wk-sub th{
+  background:var(--wk-sub-bg);color:#CBD5E1;
+  font-size:11px;font-weight:700;font-family:'JetBrains Mono',monospace;
+  padding:5px 10px;border:1px solid rgba(255,255,255,.07);
+  text-align:right;white-space:nowrap}
+thead tr.head-wk-sub th.label-cell{
+  text-align:left;font-size:10px;letter-spacing:.5px;
+  color:#94A3B8;font-family:'Inter',sans-serif;font-weight:700}
+
+/* Row 5 — Week subtotals WITH ORDER (green tint) */
+thead tr.head-wk-sub-ord th{
+  background:#1A3A28;color:#86EFAC;
+  font-size:11px;font-weight:700;font-family:'JetBrains Mono',monospace;
+  padding:5px 10px;border:1px solid rgba(255,255,255,.06);
+  text-align:right;white-space:nowrap}
+thead tr.head-wk-sub-ord th.label-cell{
+  text-align:left;font-size:10px;letter-spacing:.5px;
+  color:#4ADE80;font-family:'Inter',sans-serif;font-weight:700}
+
+/* Row 6 — Week subtotals NO ORDER (amber tint) */
+thead tr.head-wk-sub-nod th{
+  background:#2D2006;color:#FCD34D;
+  font-size:11px;font-weight:700;font-family:'JetBrains Mono',monospace;
+  padding:5px 10px;border:1px solid rgba(255,255,255,.06);
+  text-align:right;white-space:nowrap}
+thead tr.head-wk-sub-nod th.label-cell{
+  text-align:left;font-size:10px;letter-spacing:.5px;
+  color:#F59E0B;font-family:'Inter',sans-serif;font-weight:700}
+
+/* Body */
+tbody td{padding:6px 10px;border:1px solid var(--border);
+  white-space:nowrap;vertical-align:middle;color:var(--text-primary)}
+tbody tr.has-order  {background:var(--row-has-order)}
+tbody tr.no-order   {background:var(--row-no-order)}
+tbody tr:hover td   {filter:brightness(.965)}
+tbody tr.no-results-row td{text-align:center;padding:48px;
+  color:var(--text-muted);font-size:13.5px;background:#fff}
+
+td.wk-cell{text-align:right;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500}
+td.wk-cell.has-qty{color:#1B5E20;font-weight:700}
+td.wk-cell.no-qty{color:#C0C8D8}
+td.mono{font-family:'JetBrains Mono',monospace;font-size:12px}
+td.pct-good{color:#1B5E20;font-weight:700}
+td.pct-warn{color:#E65100;font-weight:700}
+td.pct-bad {color:#C62828;font-weight:700}
+
+.order-badge{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:11px;
+  font-weight:600;background:var(--primary-light);color:var(--primary);border-radius:4px;padding:2px 6px}
+.channel-chip{display:inline-block;font-size:11px;font-weight:700;border-radius:20px;padding:2px 8px}
+.channel-online{background:#E3F2FD;color:#1565C0}
+.channel-shop  {background:#E8F5E9;color:#2E7D32}
+
+/* ── SUMMARY BAR ── */
+.summary-bar{flex-shrink:0;height:40px;background:var(--primary);
+  display:flex;align-items:center;padding:0 16px;border-top:2px solid rgba(255,255,255,.1)}
+.summary-item{display:flex;align-items:center;gap:8px;
+  padding:0 14px;border-right:1px solid rgba(255,255,255,.15)}
+.summary-item:first-child{padding-left:0}
+.summary-label{font-size:10.5px;font-weight:700;color:rgba(255,255,255,.55);
+  text-transform:uppercase;letter-spacing:.35px}
+.summary-value{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:#fff}
+.legend{display:flex;align-items:center;gap:12px;margin-left:auto}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:11px;
+  font-weight:600;color:rgba(255,255,255,.65)}
+.legend-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="topnav">
+  <span class="topnav-logo">ERP <span>Merch</span></span>
+  <div class="nav-sep"></div>
+  <a class="nav-link" href="Plan_Upload.html">Plan Upload</a>
+  <a class="nav-link" href="Order_Tag.html">Order Tag</a>
+  <a class="nav-link active" href="Report.html">Report</a>
+</nav>
+
+<!-- FILTER BAR -->
+<div class="filter-bar">
+
+  <div class="filter-group">
+    <label>Buyer</label>
+    <select id="fBuyer" style="width:90px">
+      <option value="">All</option>
+      <option value="H&M">H&amp;M</option>
+      <option value="Zara">Zara</option>
+    </select>
+  </div>
+  <div class="filter-sep"></div>
+
+  <div class="filter-group">
+    <label>From</label>
+    <input type="date" id="fFrom" style="width:130px">
+    <label>To</label>
+    <input type="date" id="fTo" style="width:130px">
+  </div>
+  <div class="filter-sep"></div>
+
+  <div class="filter-group">
+    <label>Season</label>
+    <select id="fSeason" style="width:90px">
+      <option value="">All</option>
+      <option value="SS24">SS24</option>
+      <option value="AW24">AW24</option>
+    </select>
+  </div>
+  <div class="filter-sep"></div>
+
+  <div class="filter-group">
+    <label>Channel</label>
+    <select id="fChannel" style="width:90px">
+      <option value="">All</option>
+      <option value="OL">Online</option>
+      <option value="Shop">Shop</option>
+    </select>
+  </div>
+  <div class="filter-sep"></div>
+
+  <div class="filter-group">
+    <label>Merchant</label>
+    <select id="fMerchant" style="width:130px">
+      <option value="">All</option>
+      <option value="Sasha">Sasha</option>
+      <option value="Triveni Kumar">Triveni Kumar</option>
+    </select>
+  </div>
+  <div class="filter-sep"></div>
+
+  <div class="filter-group">
+    <label>Style</label>
+    <input type="text" id="fStyle" placeholder="Style name…" style="width:110px">
+  </div>
+  <div class="filter-sep"></div>
+
+  <div class="filter-group">
+    <label>Order</label>
+    <select id="fOrderStatus" style="width:110px">
+      <option value="">All</option>
+      <option value="yes">Has Order</option>
+      <option value="no">No Order</option>
+    </select>
+  </div>
+
+  <button class="btn-search" id="btnSearch" onclick="doSearch()">🔍 Search</button>
+  <button class="btn-outline" onclick="resetFilter()">✕ Reset</button>
+
+  <input class="search-global" type="text" id="gSearch"
+    placeholder="Quick filter…" oninput="globalSearch(this.value)"
+    title="Filter visible rows">
+
+  <span class="result-badge" id="resultBadge"></span>
+</div>
+
+<!-- TABLE AREA -->
+<div class="table-area" id="tableArea">
+
+  <!-- Initial prompt state -->
+  <div class="state-screen" id="statePrompt">
+    <div class="icon">📊</div>
+    <h3>OPD · TOD Report</h3>
+    <p>Set your filters above and click <strong>Search</strong> to load the report.</p>
+  </div>
+
+  <!-- Loading state (hidden) -->
+  <div class="state-screen" id="stateLoading" style="display:none">
+    <div class="spinner"></div>
+    <h3>Loading…</h3>
+    <p>Fetching report data</p>
+  </div>
+
+  <!-- No results state (hidden) -->
+  <div class="state-screen" id="stateEmpty" style="display:none">
+    <div class="icon">🔍</div>
+    <h3>No records found</h3>
+    <p>No data matches the selected filters. Try adjusting the criteria and searching again.</p>
+  </div>
+
+  <!-- Table (hidden until search) -->
+  <table id="mainTable" style="display:none">
+    <thead>
+      <tr class="head-month"      id="headMonth"></tr>
+      <tr class="head-main"       id="headMain"></tr>
+      <tr class="head-mo-sub"     id="headMoSub"></tr>
+      <tr class="head-wk-sub"     id="headWkSub"></tr>
+      <tr class="head-wk-sub-ord" id="headWkSubOrd"></tr>
+      <tr class="head-wk-sub-nod" id="headWkSubNoOrd"></tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
+
+</div>
+
+<!-- SUMMARY BAR -->
+<div class="summary-bar">
+  <div class="summary-item">
+    <span class="summary-label">Rows</span>
+    <span class="summary-value" id="sumRows">—</span>
+  </div>
+  <div class="summary-item">
+    <span class="summary-label">Projection</span>
+    <span class="summary-value" id="sumProjection">—</span>
+  </div>
+  <div class="summary-item">
+    <span class="summary-label">Received</span>
+    <span class="summary-value" id="sumReceived">—</span>
+  </div>
+  <div class="summary-item">
+    <span class="summary-label">Avg O/RCV%</span>
+    <span class="summary-value" id="sumOcv">—</span>
+  </div>
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-dot" style="background:#A5D6A7"></div>Has Order
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:#fff;border:1px solid #DDE3EE"></div>No Order
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════
+//  DATA
+// ══════════════════════════════════════════════════════
+const DATA = [
+  {
+    merchant:"Sasha", merName:"Galib / Nasir", div:14,
+    style:"DITA Dress", season:"SS24",
+    orderNo:"879151-8716", channel:"OL",
+    rcvDay:"Tuesday", opd:"2024-02-06", osdt:"2024-02-06",
+    tod:11, firstTod:"2024-03-11", month:"March", workingDays:30,
+    projection:110000, received:113026, ocv:103, smv:5.1,
+    weekly:{ 6:0,7:0,8:31611,9:22429,10:49825,11:4279,12:0,13:3228,14:1654 },
+    fabricDozCons:2.4, fabricType:"Cotton Lycra", reqFabric:5200,
+    settledFob:5.20, revisedFob:5.55, increasePct:6.7, value:120000,
+    priceIncreaseTotal:128500, preEarning:15000,
+    printPxDz:1.20, printQty:800, embPxDz:0.80,
+    aop:200, wash:150, airFreight:500, discount:300, remarks:"On track"
+  },
+  {
+    merchant:"Triveni Kumar", merName:"Galib / Nasir", div:14,
+    style:"MONICA L/S Top", season:"SS24",
+    orderNo:"915450-7616", channel:"OL",
+    rcvDay:"Wednesday", opd:"2024-03-27", osdt:"2024-03-27",
+    tod:20, firstTod:"2024-05-13", month:"May", workingDays:41,
+    projection:80000, received:80613, ocv:101, smv:8.09,
+    weekly:{ 14:0,15:0,16:0,17:32004,18:37656,19:6807,20:2232,21:0,22:1914 },
+    fabricDozCons:3.1, fabricType:"Viscose", reqFabric:6400,
+    settledFob:6.10, revisedFob:6.45, increasePct:5.7, value:200000,
+    priceIncreaseTotal:212500, preEarning:22000,
+    printPxDz:1.50, printQty:1200, embPxDz:1.10,
+    aop:300, wash:180, airFreight:700, discount:450, remarks:"Pending fabric approval"
+  },
+  {
+    merchant:"Sasha", merName:"Galib / Nasir", div:1,
+    style:"Casual Shirt", season:"AW24",
+    orderNo:"891267-8716", channel:"Shop",
+    rcvDay:"Monday", opd:"2024-02-27", osdt:"2024-02-27",
+    tod:14, firstTod:"2024-04-01", month:"April", workingDays:30,
+    projection:2600, received:2666, ocv:103, smv:5.1,
+    weekly:{ 9:0,10:0,11:2666 },
+    fabricDozCons:1.8, fabricType:"Poly Cotton", reqFabric:900,
+    settledFob:4.90, revisedFob:5.10, increasePct:4.1, value:26000,
+    priceIncreaseTotal:27050, preEarning:3000,
+    printPxDz:0.90, printQty:200, embPxDz:0.60,
+    aop:80, wash:60, airFreight:120, discount:50, remarks:"Small order"
+  },
+  {
+    merchant:"Sasha", merName:"Galib / Nasir", div:16,
+    style:"Floral Midi Dress", season:"SS24",
+    orderNo:"", channel:"OL",
+    rcvDay:"Thursday", opd:"2024-04-10", osdt:"2024-04-10",
+    tod:18, firstTod:"2024-05-06", month:"May", workingDays:24,
+    projection:45000, received:0, ocv:0, smv:6.3,
+    weekly:{},
+    fabricDozCons:2.9, fabricType:"Rayon", reqFabric:3800,
+    settledFob:5.80, revisedFob:0, increasePct:0, value:0,
+    priceIncreaseTotal:0, preEarning:0,
+    printPxDz:1.10, printQty:0, embPxDz:0,
+    aop:0, wash:0, airFreight:0, discount:0, remarks:"Awaiting order"
+  },
+  {
+    merchant:"Triveni Kumar", merName:"Galib / Nasir", div:14,
+    style:"Stripe Jersey Top", season:"AW24",
+    orderNo:"", channel:"OL",
+    rcvDay:"Monday", opd:"2024-05-06", osdt:"2024-05-06",
+    tod:22, firstTod:"2024-06-03", month:"June", workingDays:28,
+    projection:60000, received:0, ocv:0, smv:7.2,
+    weekly:{},
+    fabricDozCons:3.0, fabricType:"Poly Viscose", reqFabric:5100,
+    settledFob:6.50, revisedFob:0, increasePct:0, value:0,
+    priceIncreaseTotal:0, preEarning:0,
+    printPxDz:0, printQty:0, embPxDz:0,
+    aop:0, wash:0, airFreight:0, discount:0, remarks:"Sample pending"
+  },
+  {
+    merchant:"Sasha", merName:"Galib / Nasir", div:14,
+    style:"Baby Set Knit", season:"SS24",
+    orderNo:"934112-6564", channel:"Shop",
+    rcvDay:"Friday", opd:"2024-03-05", osdt:"2024-03-05",
+    tod:16, firstTod:"2024-04-15", month:"April", workingDays:35,
+    projection:95000, received:88000, ocv:93, smv:9.5,
+    weekly:{ 12:0,13:22000,14:31000,15:20000,16:15000 },
+    fabricDozCons:4.1, fabricType:"Interlock", reqFabric:8200,
+    settledFob:7.20, revisedFob:7.60, increasePct:5.6, value:285000,
+    priceIncreaseTotal:300000, preEarning:32000,
+    printPxDz:0, printQty:0, embPxDz:1.20,
+    aop:450, wash:200, airFreight:900, discount:600, remarks:"On track"
+  }
+];
+
+// ══════════════════════════════════════════════════════
+//  WEEK CONFIG  (WK6 → WK26, starting 4-Feb-2024)
+//  Each week tagged with its calendar month
+// ══════════════════════════════════════════════════════
+const MONTH_NAMES = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+const WEEKS = [];
+let wd = new Date("2024-02-04");
+for (let w = 6; w <= 26; w++) {
+  WEEKS.push({
+    no:    w,
+    label: `WK-${w}`,
+    date:  wd.toLocaleDateString('en-GB',{day:'2-digit',month:'short'}),
+    month: MONTH_NAMES[wd.getMonth()],
+    monthIdx: wd.getMonth()
+  });
+  wd.setDate(wd.getDate() + 7);
+}
+
+// Group weeks by month (for colspan header)
+function buildMonthGroups() {
+  const groups = [];
+  let cur = null;
+  WEEKS.forEach(w => {
+    if (!cur || cur.month !== w.month) {
+      cur = { month: w.month, weeks: [] };
+      groups.push(cur);
+    }
+    cur.weeks.push(w.no);
+  });
+  return groups;
+}
+const MONTH_GROUPS = buildMonthGroups();
+
+// ══════════════════════════════════════════════════════
+//  FIXED + COST COLUMN DEFS
+// ══════════════════════════════════════════════════════
+const FIXED_COLS = [
+  {label:"H&M Merchant",  key:"merchant"},
+  {label:"Mer / Name",    key:"merName"},
+  {label:"Div",           key:"div"},
+  {label:"Style",         key:"style"},
+  {label:"Season",        key:"season"},
+  {label:"Order No.",     key:"orderNo"},
+  {label:"Channel",       key:"channel"},
+  {label:"Rcv Day",       key:"rcvDay"},
+  {label:"OPD",           key:"opd"},
+  {label:"O/S Date",      key:"osdt"},
+  {label:"TOD",           key:"tod"},
+  {label:"1st TOD",       key:"firstTod"},
+  {label:"Month",         key:"month"},
+  {label:"Working Days",  key:"workingDays"},
+  {label:"Projection",    key:"projection"},
+  {label:"Received",      key:"received"},
+  {label:"O/RCV %",       key:"ocv"},
+  {label:"SMV",           key:"smv"},
+];
+
+const COST_COLS = [
+  {label:"Fabric/Doz Cons.",    key:"fabricDozCons"},
+  {label:"Fabric Type",         key:"fabricType"},
+  {label:"Req. Fabric",         key:"reqFabric"},
+  {label:"Settled FOB",         key:"settledFob"},
+  {label:"Revised FOB",         key:"revisedFob"},
+  {label:"Increase %",          key:"increasePct"},
+  {label:"Value",               key:"value"},
+  {label:"Price Incr. Total",   key:"priceIncreaseTotal"},
+  {label:"Pre Earning",         key:"preEarning"},
+  {label:"Print Px/Dz",         key:"printPxDz"},
+  {label:"Print/Emb Qty",       key:"printQty"},
+  {label:"EMB Px/Dz",          key:"embPxDz"},
+  {label:"AOP",                 key:"aop"},
+  {label:"Wash",                key:"wash"},
+  {label:"Air Freight",         key:"airFreight"},
+  {label:"Discount",            key:"discount"},
+  {label:"Remarks",             key:"remarks"},
+];
+
+// ══════════════════════════════════════════════════════
+//  BUILD HEADER  (called once, or on reset)
+// ══════════════════════════════════════════════════════
+function buildHeader() {
+  const hMonth  = document.getElementById("headMonth");
+  const hMain   = document.getElementById("headMain");
+  const hMoSub  = document.getElementById("headMoSub");
+  const hWkSub  = document.getElementById("headWkSub");
+  [hMonth, hMain, hMoSub, hWkSub].forEach(el => el.innerHTML = "");
+
+  const FC = FIXED_COLS.length;
+  const CC = COST_COLS.length;
+  const totalCols = FC + WEEKS.length + CC;
+
+  // ── Row 1: Month header ──
+  // Filler for fixed cols
+  const mFill = document.createElement("th");
+  mFill.colSpan = FC;
+  mFill.className = "month-filler";
+  mFill.textContent = "MONTHLY BREAKDOWN  ▶";
+  hMonth.appendChild(mFill);
+
+  MONTH_GROUPS.forEach(g => {
+    const th = document.createElement("th");
+    th.colSpan = g.weeks.length;
+    th.textContent = g.month.toUpperCase();
+    // colour-cycle per month
+    const hue = (MONTH_NAMES.indexOf(g.month) * 28) % 360;
+    th.style.background = `hsl(${hue},45%,28%)`;
+    hMonth.appendChild(th);
+  });
+
+  // Filler for cost cols
+  const mFill2 = document.createElement("th");
+  mFill2.colSpan = CC;
+  mFill2.className = "month-filler";
+  hMonth.appendChild(mFill2);
+
+  // ── Row 2: Column names ──
+  FIXED_COLS.forEach(c => {
+    const th = document.createElement("th");
+    th.textContent = c.label;
+    hMain.appendChild(th);
+  });
+  WEEKS.forEach(w => {
+    const th = document.createElement("th");
+    th.className  = "wk-th";
+    th.innerHTML  = `${w.label}<br><span style="font-size:9.5px;opacity:.65;font-weight:400">${w.date}</span>`;
+    hMain.appendChild(th);
+  });
+  COST_COLS.forEach(c => {
+    const th = document.createElement("th");
+    th.textContent = c.label;
+    hMain.appendChild(th);
+  });
+
+  // ── Row 3: Month subtotals ──
+  const moLbl = document.createElement("th");
+  moLbl.className   = "label-cell";
+  moLbl.colSpan     = FC;
+  moLbl.textContent = "MONTHLY SUBTOTALS ▶";
+  hMoSub.appendChild(moLbl);
+
+  MONTH_GROUPS.forEach(g => {
+    // One merged cell per month group (spans all weeks in that month)
+    const th = document.createElement("th");
+    th.colSpan      = g.weeks.length;
+    th.dataset.moSub = g.month;
+    th.textContent  = "—";
+    hMoSub.appendChild(th);
+  });
+
+  const moFill2 = document.createElement("th");
+  moFill2.colSpan = CC;
+  hMoSub.appendChild(moFill2);
+
+  // ── Row 4: Week subtotals ──
+  const wkLbl = document.createElement("th");
+  wkLbl.className   = "label-cell";
+  wkLbl.colSpan     = FC;
+  wkLbl.textContent = "WEEKLY SUBTOTALS ▶";
+  hWkSub.appendChild(wkLbl);
+
+  WEEKS.forEach(w => {
+    const th = document.createElement("th");
+    th.dataset.wkSub = w.no;
+    th.textContent   = "—";
+    hWkSub.appendChild(th);
+  });
+
+  const wkFill2 = document.createElement("th");
+  wkFill2.colSpan = CC;
+  hWkSub.appendChild(wkFill2);
+}
+
+// ══════════════════════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════════════════════
+function fmt(v) {
+  if (v === undefined || v === null || v === "") return "—";
+  if (typeof v === "number") return v === 0 ? "—" : v.toLocaleString();
+  return v;
+}
+function fmtDate(d) {
+  if (!d) return "—";
+  const dt = new Date(d);
+  return isNaN(dt) ? d : dt.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'2-digit'});
+}
+
+// ══════════════════════════════════════════════════════
+//  RENDER BODY
+// ══════════════════════════════════════════════════════
+function renderBody(dataset) {
+  const tbody   = document.getElementById("tbody");
+  tbody.innerHTML = "";
+
+  // Accumulators
+  const wkTotals = {};
+  WEEKS.forEach(w => { wkTotals[w.no] = 0; });
+  const moTotals = {};
+  MONTH_GROUPS.forEach(g => { moTotals[g.month] = 0; });
+
+  let sumProj=0, sumRcv=0, ocvSum=0, ocvCount=0;
+
+  dataset.forEach(r => {
+    const hasOrder = !!(r.orderNo && r.orderNo.trim());
+    const tr = document.createElement("tr");
+    tr.className   = hasOrder ? "has-order" : "no-order";
+    tr.dataset.search = Object.values(r).join(" ").toLowerCase();
+
+    // ── Fixed cells ──
+    FIXED_COLS.forEach(c => {
+      const td = document.createElement("td");
+      const v  = r[c.key];
+
+      switch (c.key) {
+        case "orderNo":
+          td.innerHTML = hasOrder
+            ? `<span class="order-badge">${v}</span>`
+            : `<span style="color:var(--text-muted);font-size:11px">— No order —</span>`;
+          break;
+        case "channel":
+          const cls = v==="OL" ? "channel-online" : "channel-shop";
+          td.innerHTML = `<span class="channel-chip ${cls}">${v==="OL"?"Online":"Shop"}</span>`;
+          break;
+        case "opd": case "osdt": case "firstTod":
+          td.textContent = fmtDate(v); td.classList.add("mono"); break;
+        case "ocv":
+          const pct = v||0;
+          td.textContent = pct ? pct+"%" : "—";
+          td.classList.add(pct>=100?"pct-good":pct>=80?"pct-warn":"pct-bad");
+          break;
+        case "projection": case "received":
+          td.textContent = v ? Number(v).toLocaleString() : "—"; td.classList.add("mono"); break;
+        default:
+          td.textContent = v ?? "—";
+      }
+      tr.appendChild(td);
+    });
+
+    // ── Week cells ──
+    WEEKS.forEach(w => {
+      const td  = document.createElement("td");
+      td.classList.add("wk-cell");
+      const qty = r.weekly[w.no] || 0;
+      if (qty) {
+        td.textContent = qty.toLocaleString();
+        td.classList.add("has-qty");
+        wkTotals[w.no] += qty;
+        moTotals[w.month] = (moTotals[w.month]||0) + qty;
+      } else {
+        td.textContent = "—";
+        td.classList.add("no-qty");
+      }
+      tr.appendChild(td);
+    });
+
+    // ── Cost cells ──
+    COST_COLS.forEach(c => {
+      const td = document.createElement("td");
+      const v  = r[c.key];
+      td.textContent = c.key==="increasePct" ? (v?v+"%":"—")
+        : typeof v==="number" ? (v?v.toLocaleString():"—") : (v||"—");
+      if (typeof v==="number") td.classList.add("mono");
+      tr.appendChild(td);
+    });
+
+    tbody.appendChild(tr);
+
+    sumProj += r.projection||0;
+    sumRcv  += r.received  ||0;
+    if (r.ocv) { ocvSum += r.ocv; ocvCount++; }
+  });
+
+  // ── Update subtotals ──
+  WEEKS.forEach(w => {
+    const cell = document.querySelector(`[data-wk-sub="${w.no}"]`);
+    if (cell) cell.textContent = wkTotals[w.no] ? wkTotals[w.no].toLocaleString() : "—";
+  });
+  MONTH_GROUPS.forEach(g => {
+    const cell = document.querySelector(`[data-mo-sub="${g.month}"]`);
+    if (cell) cell.textContent = moTotals[g.month] ? moTotals[g.month].toLocaleString() : "—";
+  });
+
+  // ── Summary bar ──
+  const avgOcv = ocvCount ? Math.round(ocvSum/ocvCount) : 0;
+  document.getElementById("sumRows").textContent       = dataset.length;
+  document.getElementById("sumProjection").textContent = sumProj.toLocaleString();
+  document.getElementById("sumReceived").textContent   = sumRcv.toLocaleString();
+  document.getElementById("sumOcv").textContent        = avgOcv ? avgOcv+"%" : "—";
+  document.getElementById("resultBadge").textContent   = dataset.length+" record"+(dataset.length!==1?"s":"");
+}
+
+// ══════════════════════════════════════════════════════
+//  SEARCH  (main entry point — simulates API call)
+// ══════════════════════════════════════════════════════
+function doSearch() {
+  // Show loading
+  showState("loading");
+  const btn = document.getElementById("btnSearch");
+  btn.classList.add("loading");
+  btn.textContent = "⏳ Loading…";
+
+  // Simulate network delay (replace setTimeout with real fetch in production)
+  setTimeout(() => {
+    const filtered = filterData();
+
+    btn.classList.remove("loading");
+    btn.innerHTML = "🔍 Search";
+
+    if (!filtered.length) {
+      showState("empty");
+      document.getElementById("sumRows").textContent = "0";
+      document.getElementById("resultBadge").textContent = "0 records";
+      return;
+    }
+
+    showState("table");
+    renderBody(filtered);
+    document.getElementById("gSearch").value = "";
+  }, 480); // ← swap for real API call
+}
+
+function filterData() {
+  const merchant     = document.getElementById("fMerchant").value;
+  const season       = document.getElementById("fSeason").value;
+  const channel      = document.getElementById("fChannel").value;
+  const style        = document.getElementById("fStyle").value.toLowerCase().trim();
+  const from         = document.getElementById("fFrom").value;
+  const to           = document.getElementById("fTo").value;
+  const orderStatus  = document.getElementById("fOrderStatus").value;
+
+  return DATA.filter(r => {
+    if (merchant && r.merchant !== merchant)                           return false;
+    if (season   && r.season   !== season)                             return false;
+    if (channel  && r.channel  !== channel)                            return false;
+    if (style    && !r.style.toLowerCase().includes(style))            return false;
+    if (from     && r.opd && r.opd < from)                             return false;
+    if (to       && r.opd && r.opd > to)                               return false;
+    if (orderStatus === "yes" && !(r.orderNo && r.orderNo.trim()))     return false;
+    if (orderStatus === "no"  &&  (r.orderNo && r.orderNo.trim()))     return false;
+    return true;
+  });
+}
+
+// ══════════════════════════════════════════════════════
+//  STATE MANAGEMENT
+// ══════════════════════════════════════════════════════
+function showState(state) {
+  document.getElementById("statePrompt").style.display  = state==="prompt"  ? "flex" : "none";
+  document.getElementById("stateLoading").style.display = state==="loading" ? "flex" : "none";
+  document.getElementById("stateEmpty").style.display   = state==="empty"   ? "flex" : "none";
+  document.getElementById("mainTable").style.display    = state==="table"   ? ""     : "none";
+}
+
+// ══════════════════════════════════════════════════════
+//  RESET
+// ══════════════════════════════════════════════════════
+function resetFilter() {
+  ["fBuyer","fSeason","fChannel","fMerchant","fOrderStatus"].forEach(id =>
+    document.getElementById(id).value = "");
+  document.getElementById("fFrom").value   = "";
+  document.getElementById("fTo").value     = "";
+  document.getElementById("fStyle").value  = "";
+  document.getElementById("gSearch").value = "";
+  showState("prompt");
+  ["sumRows","sumProjection","sumReceived","sumOcv"].forEach(id =>
+    document.getElementById(id).textContent = "—");
+  document.getElementById("resultBadge").textContent = "";
+}
+
+// ══════════════════════════════════════════════════════
+//  QUICK FILTER (post-load row visibility)
+// ══════════════════════════════════════════════════════
+function globalSearch(val) {
+  const q = val.toLowerCase().trim();
+  let visible = 0;
+  document.querySelectorAll("#tbody tr[data-search]").forEach(tr => {
+    const show = !q || tr.dataset.search.includes(q);
+    tr.style.display = show ? "" : "none";
+    if (show) visible++;
+  });
+  document.getElementById("resultBadge").textContent =
+    q ? visible+" match"+(visible!==1?"es":"") : filterData().length+" records";
+}
+
+// Allow Enter key on filter inputs to trigger search
+document.querySelectorAll(".filter-bar input, .filter-bar select").forEach(el => {
+  el.addEventListener("keydown", e => { if (e.key==="Enter") doSearch(); });
+});
+
+// ══════════════════════════════════════════════════════
+//  INIT — build header structure, stay on prompt screen
+// ══════════════════════════════════════════════════════
+buildHeader();
+</script>
+</body>
+</html>

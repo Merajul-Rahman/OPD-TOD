@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plan Upload · ERP Merchandising</title>
+<link rel="stylesheet" href="common.css">
+<style>
+    .channel-select:hover
+    {
+        background:var(--accent);
+        color:white;
+    }
+</style>
+
+</head>
+
+<body>
+
+<nav class="topnav">
+  <span class="topnav-logo">ERP <span>Merch</span></span>
+  <div class="topnav-sep"></div>
+  <div class="topnav-breadcrumb"><b><a href="Plan_Upload.html">Plan Upload</a></b></div>
+  <div class="topnav-breadcrumb"><b><a href="Order_Tag.html">Order Tag</a></b></div>
+  <div class="topnav-breadcrumb"><b><a href="Report.html">Report</a></b></div>
+</nav>
+
+
+<div class="wrapper">
+
+  <!-- PAGE HEADER -->
+    <div class="page-header">
+        <div class="page-header-left">
+            <h1>📋 Order - Plan Tagging</h1>
+        </div>
+    </div>
+
+  <!-- BASIC INFO CARD -->
+    <div class="card">
+        <div class="form-grid">
+
+            <div class="form-group">
+                <label>Select SKU</label>
+                <select id="skuSelect" onchange="onSQSelected(this.value)">
+                    <option value="">— Select SQ No. —</option>
+                    <option value="SQ0132555">SQ0132555</option>
+                    <option value="SQ0180451">SQ0180451</option>
+                    <option value="SQ0143636">SQ0143636</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+  <!-- PLAN TABLE -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-icon">📊</div>
+      <div>
+        <div class="card-title">Plan Details</div>
+      </div>
+    </div>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Split</th>
+            <th>Plan No.</th>
+            <th>Style</th>
+            <th>CW Group</th>
+            <th>Article</th>
+            <th>Channel</th>
+            <th>OPD Date</th>
+            <th>OPD Week</th>
+            <th>TOD Range</th>
+            <th>TOD Count</th>
+            <th>No. of Pcs</th>
+            <th>TOD Details</th>
+            <th>Tag Order</th>
+          </tr>
+        </thead>
+        <tbody id="planTableBody">
+          <tr id="emptyRow">
+            <td colspan="16">
+              <div class="empty-state">
+                <h3>No plans loaded</h3>
+                <p>Select an SQ to load the plans.</p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ACTION BAR -->
+    <div class="action-bar">
+        <button class="btn btn-success" onclick="savePlan()">💾 Save </button>
+        <button class="btn btn-ghost" onclick="refreshPage()">🔄 Refresh</button>
+    </div>
+</div>
+
+<!-- TOD MODAL -->
+<div class="modal-overlay" id="qtyModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div class="modal-head-left">
+        <h3>TOD Quantity Details</h3>
+        <span class="plan-badge" id="modalPlanBadge"></span>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div class="table-wrapper" style="border-radius:8px">
+        <table class="qty-table">
+        <colgroup>
+            <col style="width:30px;">
+            <col style="width:110px;">
+            <col style="width:160px;">
+            <col style="width:120px;">
+            <col style="width:30px;">
+        </colgroup>
+          <thead>
+            <tr>
+              <th>#</th><th>TOD Week</th><th>TOD Date</th>
+              <th>Qty (Pcs)</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="qtyTableBody"></tbody>
+        </table>
+      </div>
+      <div class="qty-total">
+        <div class="qty-total-item"><span>Total Qty (Pcs)</span><span id="qtyModalTotalPcs">0</span></div>
+
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveModalQty()">✓ Apply</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="Demo_Data.js"></script>
+
+
+<script>
+    const planTodStore = {};
+    let activePlanNo = null;
+
+    function onSQSelected(sqNo) {
+  if (!sqNo) {
+    document.getElementById("sqBanner").classList.remove("visible");
+    clearAll(true);
+    return;
+  }
+  const data = SQ_DB[sqNo];
+  if (!data) { showToast("⚠️ No data found for " + sqNo, "warning"); return; }
+
+  loadPlansFromDB(data.plans);
+  showToast("✅ SQ " + sqNo + " loaded — " + data.plans.length + " plan(s)", "success");
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  LOAD PLANS INTO TABLE
+// ═══════════════════════════════════════════════════════════════
+function loadPlansFromDB(plans) {
+  // Deep-clone into live store
+  plans.forEach(p => { planTodStore[p.planNo] = JSON.parse(JSON.stringify(p.tods)); });
+  const tbody = document.getElementById("planTableBody");
+  tbody.innerHTML = "";
+  plans.forEach(p => tbody.appendChild(buildRow(p)));
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  BUILD A PLAN ROW
+// ═══════════════════════════════════════════════════════════════
+function calcNoPieces(tods) {
+  const tp = tods.reduce((s,t) => s + (t.qtyPcs   || 0), 0);
+  const tk = tods.reduce((s,t) => s + (t.qtyPacks || 0), 0);
+  return tk ? Math.max(1, Math.min(10, Math.round(tp / tk))) : 2;
+}
+
+function buildNoPiecesSelect(val) {
+  return `<select style="height:30px;font-size:12.5px;padding:0 6px;width:64px;" disabled>${
+    Array.from({length:10},(_,i)=>i+1).map(v=>`<option${v===val?" selected":""}>${v}</option>`).join("")
+  }</select>`;
+}
+
+function buildRow(p) {
+  const tods       = planTodStore[p.planNo] || [];
+  const totalPcs   = tods.reduce((s,t)=>s+(t.qtyPcs  ||0),0);
+  const totalPacks = tods.reduce((s,t)=>s+(t.qtyPacks||0),0);
+  const noPieces   = calcNoPieces(tods);
+
+  const tr = document.createElement("tr");
+  tr.dataset.planNo = p.planNo;
+  tr.innerHTML = `
+    <td><button class="channel-select" onclick="SplitPlan(this)">Split</button></td>
+    <td><span class="plan-no">${p.planNo}</span></td>
+    <td style="max-width:150px;font-size:12px;color:var(--text-secondary)"><input disabled type="text" value="${p.productDev}" style="min-width:96px"></td>
+    <td style="max-width:180px;font-size:12px"><input type="text" disabled value="${p.colourwayGroup}" style="min-width:96px"></td>
+    <td><input type="text" disabled value="${p.article}" style="min-width:50px"></td>
+    <td>
+      <select class="channel-select" disabled>
+        <option${p.channel==="Online"?" selected":""}>Online</option>
+        <option${p.channel==="Store"?" selected":""}>Store</option>
+      </select>
+    </td>
+    <td><input disabled type="date" value="${p.opdDate}" style="min-width:100px" onchange="updateOpdWeek(this)"></td>
+    <td><span class="week-badge opd-week-badge">${p.opdWeek}</span></td>
+    <td style="font-size:11.5px;color:var(--text-muted);white-space:nowrap" class="tod-range">${p.todRange||"—"}</td>
+    <td><span class="tod-count">${tods.length}</span></td>
+    <td class="no-pieces-cell">${buildNoPiecesSelect(noPieces)}</td>
+    <td>
+      <button class="btn-qty" onclick="showQty('${p.planNo}','${p.channel}')">${totalPcs.toLocaleString()}</button>
+    </td>
+    <td>
+        <select>
+            <option>Select Order</option>
+            <option>65416-6524</option>
+            <option>65416-6524</option>
+            <option>65416-6524</option>
+        </select>
+    </td>
+  `;
+  return tr;
+}
+
+function SplitPlan(btn) {
+    const currentRow = btn.closest("tr");
+    if (!currentRow) return;
+
+    // clone row
+    const newRow = currentRow.cloneNode(true);
+
+    // get plan number element from both rows
+    const currentPlanEl = currentRow.querySelector(".plan-no");
+    const newPlanEl = newRow.querySelector(".plan-no");
+
+    if (currentPlanEl && newPlanEl) {
+        const basePlanNo = currentPlanEl.textContent.replace(/-\d+$/, ""); 
+        // removes existing -1, -2 etc if already there
+
+        // set numbering
+        currentPlanEl.textContent = `${basePlanNo}-1`;
+        newPlanEl.textContent = `${basePlanNo}-2`;
+    }
+
+    // insert cloned row right after
+    currentRow.parentNode.insertBefore(newRow, currentRow.nextSibling);
+}
+
+
+// ═══════════════════════════════════════════════════════════════
+//  MODAL
+// ═══════════════════════════════════════════════════════════════
+function showQty(planNo, channel) {
+  activePlanNo = planNo;
+  document.getElementById("modalPlanBadge").textContent    = planNo;
+  renderQtyRows(planTodStore[planNo] || []);
+  document.getElementById("qtyModal").classList.add("open");
+}
+
+function weekOpts(selected) {
+  let out = "";
+  for (let yr = 2025; yr <= 2027; yr++)
+    for (let w = 1; w <= 52; w++) {
+      const v = "w" + w + " " + yr;
+      out += `<option${v===selected?" selected":""}>${v}</option>`;
+    }
+  return out;
+}
+
+function renderQtyRows(data) {
+  const tbody = document.getElementById("qtyTableBody");
+  tbody.innerHTML = "";
+  data.forEach((item, idx) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td style="color:var(--text-muted);font-size:11.5px;font-weight:600;">${idx+1}</td>
+      <td><select onchange="recalcModal()" class="tod-week" disabled >${weekOpts(item.week)}</select></td>
+      <td><input type="date" value="${item.date||""}" disabled onchange="updateTODWeek(this)" ></td>
+      <td><input type="number" value="${item.qtyPcs||0}" disabled min="0" oninput="recalcModal()"></td>
+      <td><button class="btn-del" onclick="deleteTODRow(this)" title="Remove">✕</button>
+    `;
+    tbody.appendChild(tr);
+  });
+  recalcModal();
+}
+function recalcModal() {
+  let tp = 0, tk = 0;
+  document.querySelectorAll("#qtyTableBody tr").forEach(r => {
+    const ins = r.querySelectorAll("input[type='number']");
+    tp += parseInt(ins[0]?.value)||0;
+  });
+  document.getElementById("qtyModalTotalPcs").textContent   = tp.toLocaleString();
+}
+
+function deleteTODRow(btn) {
+  btn.closest("tr").remove();
+  recalcModal();
+}
+
+
+function saveModalQty() {
+  const rows    = document.querySelectorAll("#qtyTableBody tr");
+  const updated = Array.from(rows).map(r => {
+    const sel  = r.querySelector("select");
+    const ins  = r.querySelectorAll("input[type='number']");
+    const dIn  = r.querySelector("input[type='date']");
+    return { week:sel?.value||"", date:dIn?.value||"",
+             qtyPcs:parseInt(ins[0]?.value)||0 };
+  });
+  planTodStore[activePlanNo] = updated;
+
+  const planRow = document.querySelector(`tr[data-plan-no="${activePlanNo}"]`);
+  if (planRow) {
+    const tp = updated.reduce((s,t)=>s+t.qtyPcs,0);
+    planRow.querySelector(".tod-count").textContent = updated.length;
+
+    const minWeekRow = updated.reduce((a, b) => {
+        const getWeek = (w) => 
+            parseInt(w.week.split(" ")[0].replace("w", ""));
+        return getWeek(b) < getWeek(a) ? b : a;
+    });
+    const minWeek = minWeekRow.week.split(" ")[0];
+
+    const maxWeekRow = updated.reduce((a, b) => {
+        const getWeek = (w) => 
+            parseInt(w.week.split(" ")[0].replace("w", ""));
+        return getWeek(b) > getWeek(a) ? b : a;
+    });
+
+    const maxWeek = maxWeekRow.week;
+
+    planRow.querySelector(".tod-range").textContent = minWeek + ' - ' + maxWeek;
+    
+    const btn = planRow.querySelector(".btn-qty");
+    if (btn) btn.innerHTML = `${tp.toLocaleString()}`;
+    const npc = planRow.querySelector(".no-pieces-cell");
+    if (npc) npc.innerHTML = buildNoPiecesSelect(calcNoPieces(updated));
+  }
+  closeModal();
+  showToast("✅ TOD quantities updated for " + activePlanNo, "success");
+}
+
+function closeModal() { document.getElementById("qtyModal").classList.remove("open"); }
+document.getElementById("qtyModal").addEventListener("click", e => { if (e.target===document.getElementById("qtyModal")) closeModal(); });
+
+</script>
+
+</body>
+</html>

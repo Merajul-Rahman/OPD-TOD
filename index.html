@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plan Upload · ERP Merchandising</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+  :root {
+    --primary:#1565C0; --primary-light:#E3F2FD; --accent:#00897B; --accent-light:#E0F2F1;
+    --danger:#C62828; --danger-light:#FFEBEE; --warning:#F57F17; --warning-light:#FFF8E1;
+    --increased:#1B5E20; --increased-bg:#E8F5E9; --decreased:#B71C1C; --decreased-bg:#FFEBEE;
+    --new-bg:#E3F2FD; --new-color:#0D47A1; --removed-bg:#F3E5F5; --removed-color:#6A1B9A;
+    --surface:#FFFFFF; --bg:#F0F4FA; --border:#DDE3EE;
+    --text-primary:#1A2340; --text-secondary:#5A6A85; --text-muted:#8C9BB5;
+    --shadow-sm:0 1px 4px rgba(21,101,192,.06); --shadow:0 2px 12px rgba(21,101,192,.10);
+    --shadow-lg:0 8px 32px rgba(21,101,192,.14); --radius:8px; --radius-lg:12px;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text-primary);min-height:100vh}
+
+  /* NAV */
+  .topnav{background:var(--primary);height:52px;display:flex;align-items:center;padding:0 24px;gap:16px;box-shadow:0 2px 8px rgba(0,0,0,.18);position:sticky;top:0;z-index:100}
+  .topnav-logo{font-size:15px;font-weight:700;color:#fff;letter-spacing:.5px}
+  .topnav-logo span{color:#90CAF9}
+  .topnav-sep{width:1px;height:20px;background:rgba(255,255,255,.25)}
+  .topnav-breadcrumb{font-size:13px;color:rgba(255,255,255,.75);display:flex;align-items:center;gap:6px}
+  .topnav-breadcrumb b{color:#fff;font-weight:600}
+
+  .wrapper{max-width:1520px;margin:0 auto;padding:24px 24px 110px;display:flex;flex-direction:column;gap:18px}
+
+  @media(max-width:680px){.wrapper{padding:14px 12px 110px}.form-grid{grid-template-columns:1fr 1fr}.stats-row{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <span class="topnav-logo">ERP <span>Merch</span></span>
+  <div class="topnav-sep"></div>
+  <div class="topnav-breadcrumb"><b><a href="Plan_Upload.html">Plan Upload</a></b></div>
+  <div class="topnav-breadcrumb"><b><a href="Order_Tag.html">Order Tag</a></b></div>
+  <div class="topnav-breadcrumb"><b><a href="Report.html">Report</a></b></div>
+</nav>
+
+</body>
+</html>

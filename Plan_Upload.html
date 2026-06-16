@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plan Upload · ERP Merchandising</title>
+<link rel="stylesheet" href="common.css">
+</head>
+<body>
+
+<nav class="topnav">
+  <span class="topnav-logo">ERP <span>Merch</span></span>
+  <div class="topnav-sep"></div>
+  <div class="topnav-breadcrumb"><b><a href="Plan_Upload.html">Plan Upload</a></b></div>
+  <div class="topnav-breadcrumb"><b><a href="Order_Tag.html">Order Tag</a></b></div>
+  <div class="topnav-breadcrumb"><b><a href="Report.html">Report</a></b></div>
+</nav>
+
+<div class="wrapper">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <div class="page-header-left">
+      <h1>📋 Plan Upload</h1>
+    </div>
+    <div class="mode-toggle">
+      <input type="radio" name="status" id="mode-new" value="new" checked>
+      <label for="mode-new"><span class="mode-dot"></span> New</label>
+      <input type="radio" name="status" id="mode-revise" value="revise">
+      <label for="mode-revise"><span class="mode-dot"></span> Revise</label>
+    </div>
+  </div>
+
+  <!-- BASIC INFO CARD -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-icon">📝</div>
+      <div>
+        <div class="card-title">Basic Information</div>
+      </div>
+    </div>
+
+    <div class="form-grid">
+
+      <!-- SQ No -->
+      <div class="form-group">
+        <label>SQ No. <span class="req">*</span></label>
+        <input type="text" id="skuInput" placeholder="e.g. SQ0132555">
+        <select id="skuSelect" style="display:none;" onchange="onSQSelected(this.value)">
+          <option value="">— Select SQ No. —</option>
+          <option value="SQ0132555">SQ0132555</option>
+          <option value="SQ0180451">SQ0180451</option>
+          <option value="SQ0143636">SQ0143636</option>
+        </select>
+      </div>
+
+      <!-- Season -->
+      <div class="form-group">
+        <label>Season</label>
+        <select id="ddlSeason">
+          <option value="-1">— Select —</option>
+          <option value="108">1-2025 (202501)</option>
+          <option value="498">2-2025 (202502)</option>
+          <option value="499">3-2025 (202503)</option>
+          <option value="109">4-2026 (202604)</option>
+          <option value="110">3-2026 (202603)</option>
+          <option value="20">Winter (Win)</option>
+          <option value="21">Summer (SUM)</option>
+          <option value="22">General (GEN)</option>
+        </select>
+      </div>
+
+      <!-- Department -->
+      <div class="form-group">
+        <label>Department</label>
+        <select id="department">
+          <option value="-1">— Select —</option>
+          <option value="57">Newborn (6564)</option>
+          <option value="56">Baby Boys (6545)</option>
+          <option value="53">Baby Girls (6525)</option>
+          <option value="54">Baby Girls (7050)</option>
+          <option value="58">Young Boys (8748)</option>
+          <option value="59">Small H&amp;M Boys (7648)</option>
+          <option value="60">H&amp;M Boys (7848)</option>
+          <option value="63">Young Girls (8716)</option>
+          <option value="64">Small Girls (7616)</option>
+          <option value="69">H&amp;M Accessories (2950)</option>
+          <option value="330">Ladies Divided (1347)</option>
+          <option value="331">Divided Fancy (1640)</option>
+        </select>
+      </div>
+
+      <!-- PD Number -->
+      <div class="form-group">
+        <label>PD Number <span class="req">*</span></label>
+        <input type="text" id="pdNumber">
+      </div>
+
+      <!-- Product Type -->
+      <div class="form-group">
+        <label>Product Type</label>
+        <select id="productType">
+          <option value="">— Select —</option>
+          <option value="knit">Knit</option>
+          <option value="woven">Woven</option>
+          <option value="denim">Denim</option>
+          <option value="set">Set</option>
+          <option value="outerwear">Outerwear</option>
+          <option value="accessories">Accessories</option>
+        </select>
+      </div>
+
+      <!-- Total SMV -->
+      <div class="form-group">
+        <label>Total SMV</label>
+        <input type="number" id="totalSMV" placeholder="0.00" step="0.01" min="0">
+      </div>
+
+      <!-- Consumption -->
+      <div class="form-group">
+        <label>Consumption / Dzn</label>
+        <input type="number" id="consumption" placeholder="0.000" step="0.001" min="0">
+      </div>
+
+      <!-- Price -->
+      <div class="form-group">
+        <label>Price (USD)</label>
+        <input type="number" id="price" placeholder="0.00" step="0.01" min="0">
+      </div>
+
+      <!-- Pre-Cost Earning -->
+      <div class="form-group">
+        <label>Pre-Cost Earning</label>
+        <input type="number" id="preCostEarning" placeholder="0.00" step="0.01" min="0">
+      </div>
+
+      <!-- Upload -->
+      <div class="form-group">
+        <label>Upload Plan Excel</label>
+        <label class="file-label" id="fileLabel" for="excelFile">
+            <span id="fileLabelText">Choose .xlsx or .xls file</span>
+        </label>
+        <input type="file" id="excelFile" accept=".xlsx,.xls">
+      </div>
+
+    </div>
+
+
+    <div class="info-strip" id="infoStrip" style="display:none;">
+      ✅ <span id="infoText"></span>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-row" id="statsRow" style="display:none;">
+    <div class="stat-chip"><span class="stat-label">Total Plans</span><span class="stat-value primary" id="stat-plans">0</span></div>
+    <div class="stat-chip"><span class="stat-label">Total TODs</span><span class="stat-value" id="stat-tods">0</span></div>
+    <div class="stat-chip"><span class="stat-label">Total Qty (Pcs)</span><span class="stat-value accent" id="stat-pieces">0</span></div>
+    <div class="stat-chip"><span class="stat-label">Channels</span><span class="stat-value" id="stat-channels">0</span></div>
+  </div>
+
+  <!-- PLAN TABLE -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-icon">📊</div>
+      <div>
+        <div class="card-title">Plan Details</div>
+      </div>
+    </div>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Plan No.</th>
+            <th>Style</th>
+            <th>Colourway Group</th>
+            <th>Article</th>
+            <th>Channel</th>
+            <th>OPD Date</th>
+            <th>OPD Week</th>
+            <th>TOD Range</th>
+            <th>TOD Count</th>
+            <th>No. of Pcs</th>
+            <th>TOD Details</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="planTableBody">
+          <tr id="emptyRow">
+            <td colspan="16">
+              <div class="empty-state">
+                <div class="empty-icon">📂</div>
+                <h3>No plans loaded</h3>
+                <p>Select an SQ in Revise mode, upload an Excel file, or click "Generate Demo Rows".</p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ACTION BAR -->
+  <div class="action-bar">
+    <div class="action-bar-left">
+      <button class="btn btn-success" onclick="savePlan()">💾 Save Plan</button>
+      <button class="btn btn-ghost" onclick="refreshPage()">🔄 Refresh</button>
+      <button class="btn btn-ghost" onclick="addEmptyRow()">＋ Add Row</button>
+    </div>
+    <div class="action-bar-right">
+      <button class="btn btn-ghost" onclick="generatePlans()">🧪 Generate Demo Rows</button>
+      <button class="btn btn-danger-ghost" onclick="clearAll()">✕ Clear All</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOD MODAL -->
+<div class="modal-overlay" id="qtyModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div class="modal-head-left">
+        <h3>TOD Quantity Details</h3>
+        <span class="plan-badge" id="modalPlanBadge"></span>
+      </div>
+      <div class="modal-head-actions">
+        <button class="btn btn-warn" onclick="shiftWeeksPlus1()">⏩ TOD Week +1</button>
+        <button class="btn btn-warn" onclick="shiftWeeksMinus1()">⏩ TOD Week -1</button>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div class="table-wrapper" style="border-radius:8px">
+        <table class="qty-table">
+        <colgroup>
+            <col style="width:30px;">
+            <col style="width:110px;">
+            <col style="width:160px;">
+            <col style="width:120px;">
+            <col style="width:30px;">
+        </colgroup>
+          <thead>
+            <tr>
+              <th>#</th><th>TOD Week</th><th>TOD Date</th>
+              <th>Qty (Pcs)</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="qtyTableBody"></tbody>
+        </table>
+      </div>
+      <button class="btn-add-tod" onclick="addTodRow()">＋ Add TOD Row</button>
+      <div class="qty-total">
+        <div class="qty-total-item"><span>Total Qty (Pcs)</span><span id="qtyModalTotalPcs">0</span></div>
+
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveModalQty()">✓ Apply</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+
+<script src="Demo_Data.js"></script>
+<script src="Modal_Functions.js"></script>
+
+<script>
+
+
+// per-plan live TOD store (mutated by modal)
+const planTodStore = {};
+let activePlanNo = null;
+
+// ═══════════════════════════════════════════════════════════════
+//  ISO WEEK (Monday-start)
+// ═══════════════════════════════════════════════════════════════
+function getISOWeek(dateStr) {
+  if (!dateStr) return "—";
+  const d = new Date(dateStr + "T00:00:00");
+  const day = d.getDay() === 0 ? 7 : d.getDay();
+  d.setDate(d.getDate() + 4 - day);
+  const yearStart = new Date(d.getFullYear(), 0, 1);
+  const wk = Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
+  return "w" + wk + " " + d.getFullYear();
+}
+
+function shiftWeekStr(wkStr, delta) {
+  const m = wkStr.match(/w(\d+)\s+(\d{4})/i);
+  if (!m) return wkStr;
+  let wk = parseInt(m[1]) + delta, yr = parseInt(m[2]);
+  if (wk > 52) { wk -= 52; yr++; }
+  if (wk < 1)  { wk += 52; yr--; }
+  return "w" + wk + " " + yr;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  MODE TOGGLE
+// ═══════════════════════════════════════════════════════════════
+document.querySelectorAll('input[name="status"]').forEach(r => {
+  r.addEventListener("change", function () {
+    const isRevise = this.value === "revise";
+    document.getElementById("skuInput").style.display  = isRevise ? "none"  : "block";
+    document.getElementById("skuSelect").style.display = isRevise ? "block" : "none";
+    if (!isRevise) {
+      // reset banner when going back to New
+      document.getElementById("sqBanner").classList.remove("visible");
+    }
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════
+//  ON SQ SELECTED (Revise)
+// ═══════════════════════════════════════════════════════════════
+function onSQSelected(sqNo) {
+  if (!sqNo) {
+    document.getElementById("sqBanner").classList.remove("visible");
+    clearAll(true);
+    return;
+  }
+  const data = SQ_DB[sqNo];
+  if (!data) { showToast("⚠️ No data found for " + sqNo, "warning"); return; }
+
+  // ── Populate form fields ──
+  setSelectVal("ddlSeason",   data.season);
+  setSelectVal("department",  data.department);
+  setSelectVal("productType", data.productType);
+  document.getElementById("pdNumber").value   = data.pdNumber    || "";
+  document.getElementById("totalSMV").value   = data.totalSMV   || "";
+  document.getElementById("consumption").value= data.consumption || "";
+  document.getElementById("price").value      = data.price       || "";
+  document.getElementById("preCostEarning").value      = data.precostearning|| "";
+
+
+  // ── Load plan rows ──
+  loadPlansFromDB(data.plans);
+  showToast("✅ SQ " + sqNo + " loaded — " + data.plans.length + " plan(s)", "success");
+}
+
+function setSelectVal(id, val) {
+  const el = document.getElementById(id);
+  for (let i = 0; i < el.options.length; i++) {
+    if (el.options[i].value === val) { el.selectedIndex = i; return; }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  LOAD PLANS INTO TABLE
+// ═══════════════════════════════════════════════════════════════
+function loadPlansFromDB(plans) {
+  // Deep-clone into live store
+  plans.forEach(p => { planTodStore[p.planNo] = JSON.parse(JSON.stringify(p.tods)); });
+  const tbody = document.getElementById("planTableBody");
+  tbody.innerHTML = "";
+  plans.forEach(p => tbody.appendChild(buildRow(p)));
+  document.getElementById("statsRow").style.display = "grid";
+  updateStats();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  BUILD A PLAN ROW
+// ═══════════════════════════════════════════════════════════════
+function calcNoPieces(tods) {
+  const tp = tods.reduce((s,t) => s + (t.qtyPcs   || 0), 0);
+  const tk = tods.reduce((s,t) => s + (t.qtyPacks || 0), 0);
+  return tk ? Math.max(1, Math.min(10, Math.round(tp / tk))) : 2;
+}
+
+function buildNoPiecesSelect(val) {
+  return `<select style="height:30px;font-size:12.5px;padding:0 6px;width:64px;">${
+    Array.from({length:10},(_,i)=>i+1).map(v=>`<option${v===val?" selected":""}>${v}</option>`).join("")
+  }</select>`;
+}
+
+function buildRow(p) {
+  const tods       = planTodStore[p.planNo] || [];
+  const totalPcs   = tods.reduce((s,t)=>s+(t.qtyPcs  ||0),0);
+  const totalPacks = tods.reduce((s,t)=>s+(t.qtyPacks||0),0);
+  const noPieces   = calcNoPieces(tods);
+
+  const tr = document.createElement("tr");
+  tr.dataset.planNo = p.planNo;
+  tr.innerHTML = `
+    <td><span class="plan-no">${p.planNo}</span></td>
+    <td style="max-width:150px;font-size:12px;color:var(--text-secondary)"><input type="text" value="${p.productDev}" style="min-width:96px"></td>
+    <td style="max-width:180px;font-size:12px"><input type="text" value="${p.colourwayGroup}" style="min-width:96px"></td>
+    <td><input type="text" value="${p.article}" style="min-width:96px"></td>
+    <td>
+      <select class="channel-select">
+        <option${p.channel==="Online"?" selected":""}>Online</option>
+        <option${p.channel==="Store"?" selected":""}>Store</option>
+      </select>
+    </td>
+    <td><input type="date" value="${p.opdDate}" style="min-width:132px" onchange="updateOpdWeek(this)"></td>
+    <td><span class="week-badge opd-week-badge">${p.opdWeek}</span></td>
+    <td style="font-size:11.5px;color:var(--text-muted);white-space:nowrap" class="tod-range">${p.todRange||"—"}</td>
+    <td><span class="tod-count">${tods.length}</span></td>
+    <td class="no-pieces-cell">${buildNoPiecesSelect(noPieces)}</td>
+    <td>
+      <button class="btn-qty" onclick="showQty('${p.planNo}','${p.channel}')">${totalPcs.toLocaleString()}</button>
+    </td>
+    <td><button class="btn-del" onclick="deleteRow(this)" title="Remove">✕</button></td>
+  `;
+  return tr;
+}
+
+function updateOpdWeek(input) {
+  input.closest("tr").querySelector(".opd-week-badge").textContent = getISOWeek(input.value);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  GENERATE DEMO ROWS (New mode fallback)
+// ═══════════════════════════════════════════════════════════════
+function generatePlans() {
+  const data = SQ_DB["SQ0132555"];
+  data.plans.forEach(p => { planTodStore[p.planNo] = JSON.parse(JSON.stringify(p.tods)); });
+  const tbody = document.getElementById("planTableBody");
+  tbody.innerHTML = "";
+  data.plans.forEach(p => tbody.appendChild(buildRow(p)));
+  document.getElementById("statsRow").style.display = "grid";
+  updateStats();
+  showToast("🧪 Demo rows loaded — SQ0132555 (MICHAEL_WD_SET, 2 plans)", "success");
+}
+
+// File upload triggers demo parse
+document.getElementById("excelFile").addEventListener("change", function () {
+  const file = this.files[0];
+  if (file) {
+    document.getElementById("fileLabel").classList.add("has-file");
+    document.getElementById("fileLabelText").textContent = file.name;
+    showToast("✅ File attached: " + file.name, "success");
+    showInfoStrip(`"${file.name}" attached — click Save to process.`);
+    generatePlans();
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════
+//  ADD / DELETE ROW
+// ═══════════════════════════════════════════════════════════════
+function addEmptyRow() {
+  const tbody  = document.getElementById("planTableBody");
+  const count  = tbody.querySelectorAll("tr[data-plan-no]").length + 1;
+  const no     = "PLAN" + String(count).padStart(3,"0");
+  const today  = new Date().toISOString().slice(0,10);
+  planTodStore[no] = [];
+  tbody.appendChild(buildRow({
+    planNo:no, productDev:"", colourwayGroup:"", article:"",
+    pipe:"Regular Demand", channel:"Online",
+    opdDate:today, opdWeek:getISOWeek(today),
+    isw:"—", todRange:"—"
+  }));
+  document.getElementById("statsRow").style.display = "grid";
+  updateStats();
+}
+
+function deleteRow(btn) {
+  btn.closest("tr").remove();
+  updateStats();
+  const tbody = document.getElementById("planTableBody");
+  if (!tbody.querySelectorAll("tr[data-plan-no]").length) {
+    tbody.innerHTML = `<tr id="emptyRow"><td colspan="16"><div class="empty-state"><div class="empty-icon">📂</div><h3>No plans loaded</h3><p>Select an SQ in Revise mode, upload a file, or use Generate Demo Rows.</p></div></td></tr>`;
+    document.getElementById("statsRow").style.display = "none";
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  STATS
+// ═══════════════════════════════════════════════════════════════
+function updateStats() {
+  let pcs = 0, packs = 0, tods = 0;
+  const ch = new Set();
+  document.querySelectorAll("tr[data-plan-no]").forEach(r => {
+    pcs   += parseInt(r.querySelector(".btn-qty")?.textContent.replace(/,/g,""))||0;
+    tods  += parseInt(r.querySelector(".tod-count")?.textContent)||0;
+    const cs = r.querySelector(".channel-select"); if (cs) ch.add(cs.value);
+  });
+  const rows = document.querySelectorAll("tr[data-plan-no]").length;
+  document.getElementById("stat-plans").textContent    = rows;
+  document.getElementById("stat-tods").textContent     = tods;
+  document.getElementById("stat-pieces").textContent   = pcs.toLocaleString();
+  document.getElementById("stat-channels").textContent = ch.size;
+}
+
+
+
+// ═══════════════════════════════════════════════════════════════
+//  ACTIONS
+// ═══════════════════════════════════════════════════════════════
+function savePlan() {
+  const sq  = document.getElementById("skuInput").value || document.getElementById("skuSelect").value;
+  const pdn = document.getElementById("pdNumber").value
+
+  if (!sq||pdn.trim() == "") { showToast("⚠️ Fill in SQ No., and PD Number first", "warning"); return; }
+  
+  const rows = document.querySelectorAll("tr[data-plan-no]");
+  if (!rows.length) { showToast("⚠️ No plan rows to save.", "warning"); return; }
+  
+  
+  showToast("💾 Plan saved — " + rows.length + " row(s) for " + sq, "success");
+}
+
+function refreshPage() { showToast("🔄 Refreshing…","success"); setTimeout(()=>location.reload(),600); }
+
+function clearAll(silent=false) {
+  const tbody = document.getElementById("planTableBody");
+  tbody.innerHTML = `<tr id="emptyRow"><td colspan="16"><div class="empty-state"><div class="empty-icon">📂</div><h3>No plans loaded</h3><p>Select an SQ in Revise mode, upload a file, or use Generate Demo Rows.</p></div></td></tr>`;
+  document.getElementById("statsRow").style.display = "none";
+  document.getElementById("infoStrip").style.display = "none";
+  document.getElementById("sqBanner").classList.remove("visible");
+  if (!silent) showToast("🗑️ All rows cleared.", "warning");
+}
+
+function showInfoStrip(msg) {
+  document.getElementById("infoText").textContent = msg;
+  document.getElementById("infoStrip").style.display = "flex";
+}
+
+function showToast(msg, type="success") {
+  const c  = document.getElementById("toastContainer");
+  const el = document.createElement("div");
+  el.className = "toast "+type;
+  el.textContent = msg;
+  c.appendChild(el);
+  setTimeout(()=>el.remove(), 3200);
+}
+</script>
+</body>
+</html>
