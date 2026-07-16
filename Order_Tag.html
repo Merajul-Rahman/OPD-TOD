@@ -160,7 +160,7 @@
   if (!data) { showToast("⚠️ No data found for " + sqNo, "warning"); return; }
 
   loadPlansFromDB(data.plans);
-  showToast("✅ SQ " + sqNo + " loaded — " + data.plans.length + " plan(s)", "success");
+
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -229,29 +229,146 @@ function buildRow(p) {
   return tr;
 }
 
-function SplitPlan(btn) {
-    const currentRow = btn.closest("tr");
-    if (!currentRow) return;
 
-    // clone row
-    const newRow = currentRow.cloneNode(true);
 
-    // get plan number element from both rows
-    const currentPlanEl = currentRow.querySelector(".plan-no");
-    const newPlanEl = newRow.querySelector(".plan-no");
+//Split
+function splitQty(qty) {
+    qty = parseInt(String(qty).replace(/,/g, ""), 10) || 0;
 
-    if (currentPlanEl && newPlanEl) {
-        const basePlanNo = currentPlanEl.textContent.replace(/-\d+$/, ""); 
-        // removes existing -1, -2 etc if already there
-
-        // set numbering
-        currentPlanEl.textContent = `${basePlanNo}-1`;
-        newPlanEl.textContent = `${basePlanNo}-2`;
-    }
-
-    // insert cloned row right after
-    currentRow.parentNode.insertBefore(newRow, currentRow.nextSibling);
+    return [
+        Math.ceil(qty / 2),
+        Math.floor(qty / 2)
+    ];
 }
+
+function formatNumber(num) {
+    return num.toLocaleString("en-US");
+}
+function SplitPlan(btn) {
+
+    const parentRow = btn.closest("tr");
+    if (!parentRow) return;
+
+    const parentPlan = parentRow.querySelector(".plan-no").textContent.trim();
+
+    const childPlan1 = parentPlan + "-1";
+    const childPlan2 = parentPlan + "-2";
+
+    //-----------------------------------------
+    // Clone rows
+    //-----------------------------------------
+    const row1 = parentRow.cloneNode(true);
+    const row2 = parentRow.cloneNode(true);
+
+    //-----------------------------------------
+    // Update Plan Numbers
+    //-----------------------------------------
+    row1.querySelector(".plan-no").textContent = childPlan1;
+    row2.querySelector(".plan-no").textContent = childPlan2;
+
+    row1.dataset.planNo = childPlan1;
+    row2.dataset.planNo = childPlan2;
+
+    //-----------------------------------------
+    // Get Channel
+    //-----------------------------------------
+    const channel =
+        parentRow.querySelector(".channel-select")?.value || "Online";
+
+    //-----------------------------------------
+    // Split TOD Store
+    //-----------------------------------------
+    const originalData = structuredClone(planTodStore[parentPlan] || []);
+
+    const data1 = structuredClone(originalData);
+    const data2 = structuredClone(originalData);
+
+    let total1 = 0;
+    let total2 = 0;
+
+    data1.forEach((item, i) => {
+
+        const [q1, q2] = splitQty(item.qtyPcs);
+
+        data1[i].qtyPcs = q1;
+        data2[i].qtyPcs = q2;
+
+        total1 += q1;
+        total2 += q2;
+
+    });
+
+    planTodStore[childPlan1] = data1;
+    planTodStore[childPlan2] = data2;
+
+    delete planTodStore[parentPlan];
+
+    //-----------------------------------------
+    // Qty Buttons
+    //-----------------------------------------
+    const btn1 = row1.querySelector(".btn-qty");
+    const btn2 = row2.querySelector(".btn-qty");
+
+    btn1.textContent = formatNumber(total1);
+    btn2.textContent = formatNumber(total2);
+
+    btn1.setAttribute(
+        "onclick",
+        `showQty('${childPlan1}','${channel}')`
+    );
+
+    btn2.setAttribute(
+        "onclick",
+        `showQty('${childPlan2}','${channel}')`
+    );
+
+    //-----------------------------------------
+    // TOD Count
+    //-----------------------------------------
+    row1.querySelector(".tod-count").textContent = data1.length;
+    row2.querySelector(".tod-count").textContent = data2.length;
+
+    //-----------------------------------------
+    // TOD Range
+    //-----------------------------------------
+    if (data1.length) {
+
+        const minWeek = data1[0].week.split(" ")[0];
+        const maxWeek = data1[data1.length - 1].week;
+
+        row1.querySelector(".tod-range").textContent =
+            `${minWeek} - ${maxWeek}`;
+
+        row2.querySelector(".tod-range").textContent =
+            `${minWeek} - ${maxWeek}`;
+    }
+    //-----------------------------------------
+    // No Pieces
+    //-----------------------------------------
+/*     const npc1 = row1.querySelector(".no-pieces-cell");
+    console.log(npc1);
+    const npc2 = row2.querySelector(".no-pieces-cell");
+
+    if (npc1)
+        npc1.innerHTML = buildNoPiecesSelect(calcNoPieces(data1));
+
+    if (npc2)
+        npc2.innerHTML = buildNoPiecesSelect(calcNoPieces(data2)); */
+
+    //-----------------------------------------
+    // Insert & Remove
+    //-----------------------------------------
+    parentRow.parentNode.insertBefore(row1, parentRow);
+    parentRow.parentNode.insertBefore(row2, parentRow);
+    parentRow.remove();
+
+    showToast(
+        `${parentPlan} split into ${childPlan1} and ${childPlan2}`,
+        "success"
+    );
+
+}
+
 
 
 // ═══════════════════════════════════════════════════════════════
@@ -349,6 +466,23 @@ function saveModalQty() {
 
 function closeModal() { document.getElementById("qtyModal").classList.remove("open"); }
 document.getElementById("qtyModal").addEventListener("click", e => { if (e.target===document.getElementById("qtyModal")) closeModal(); });
+
+
+
+function refreshPage() {
+  console.log(document.getElementById("skuSelect").value);
+    onSQSelected(document.getElementById("skuSelect").value);
+  }
+
+function showToast(msg, type="success") {
+  const c  = document.getElementById("toastContainer");
+  const el = document.createElement("div");
+  el.className = "toast "+type;
+  el.textContent = msg;
+  c.appendChild(el);
+  setTimeout(()=>el.remove(), 3200);
+}
+
 
 </script>
 
